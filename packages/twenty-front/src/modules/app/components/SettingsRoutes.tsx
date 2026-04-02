@@ -129,10 +129,18 @@ const SettingsDomains = lazy(() =>
   })),
 );
 
-const SettingsDomain = lazy(() =>
-  import('~/pages/settings/domains/SettingsDomain').then((module) => ({
-    default: module.SettingsDomain,
+const SettingsSubdomainPage = lazy(() =>
+  import('~/pages/settings/domains/SettingsSubdomainPage').then((module) => ({
+    default: module.SettingsSubdomainPage,
   })),
+);
+
+const SettingsCustomDomainPage = lazy(() =>
+  import('~/pages/settings/domains/SettingsCustomDomainPage').then(
+    (module) => ({
+      default: module.SettingsCustomDomainPage,
+    }),
+  ),
 );
 
 const SettingsApiWebhooks = lazy(() =>
@@ -144,6 +152,12 @@ const SettingsApiWebhooks = lazy(() =>
 const SettingsAI = lazy(() =>
   import('~/pages/settings/ai/SettingsAI').then((module) => ({
     default: module.SettingsAI,
+  })),
+);
+
+const SettingsAIUsageUserDetail = lazy(() =>
+  import('~/pages/settings/ai/SettingsAIUsageUserDetail').then((module) => ({
+    default: module.SettingsAIUsageUserDetail,
   })),
 );
 
@@ -248,6 +262,18 @@ const SettingsAccounts = lazy(() =>
 const SettingsBilling = lazy(() =>
   import('~/pages/settings/SettingsBilling').then((module) => ({
     default: module.SettingsBilling,
+  })),
+);
+
+const SettingsUsage = lazy(() =>
+  import('~/pages/settings/SettingsUsage').then((module) => ({
+    default: module.SettingsUsage,
+  })),
+);
+
+const SettingsUsageUserDetail = lazy(() =>
+  import('~/pages/settings/SettingsUsageUserDetail').then((module) => ({
+    default: module.SettingsUsageUserDetail,
   })),
 );
 
@@ -372,6 +398,30 @@ const SettingsAdminConfigVariableDetails = lazy(() =>
   })),
 );
 
+const SettingsAdminNewAiProvider = lazy(() =>
+  import('~/pages/settings/admin-panel/SettingsAdminNewAiProvider').then(
+    (module) => ({
+      default: module.SettingsAdminNewAiProvider,
+    }),
+  ),
+);
+
+const SettingsAdminAiProviderDetail = lazy(() =>
+  import('~/pages/settings/admin-panel/SettingsAdminAiProviderDetail').then(
+    (module) => ({
+      default: module.SettingsAdminAiProviderDetail,
+    }),
+  ),
+);
+
+const SettingsAdminNewAiModel = lazy(() =>
+  import('~/pages/settings/admin-panel/SettingsAdminNewAiModel').then(
+    (module) => ({
+      default: module.SettingsAdminNewAiModel,
+    }),
+  ),
+);
+
 const SettingsUpdates = lazy(() =>
   import('~/pages/settings/updates/SettingsUpdates').then((module) => ({
     default: module.SettingsUpdates,
@@ -493,11 +543,35 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
           element={<SettingsSkillForm mode="edit" />}
         />
         <Route
+          path={SettingsPath.AIUsageUserDetail}
+          element={<SettingsAIUsageUserDetail />}
+        />
+        <Route
           path={SettingsPath.LogicFunctionDetail}
           element={<SettingsLogicFunctionDetail />}
         />
         <Route path={SettingsPath.Billing} element={<SettingsBilling />} />
-        <Route path={SettingsPath.Domain} element={<SettingsDomain />} />
+        <Route
+          element={
+            <SettingsProtectedRouteWrapper
+              requiredFeatureFlag={FeatureFlagKey.IS_USAGE_ANALYTICS_ENABLED}
+            />
+          }
+        >
+          <Route path={SettingsPath.Usage} element={<SettingsUsage />} />
+          <Route
+            path={SettingsPath.UsageUserDetail}
+            element={<SettingsUsageUserDetail />}
+          />
+        </Route>
+        <Route
+          path={SettingsPath.Subdomain}
+          element={<SettingsSubdomainPage />}
+        />
+        <Route
+          path={SettingsPath.CustomDomain}
+          element={<SettingsCustomDomainPage />}
+        />
         <Route
           path={SettingsPath.NewEmailingDomain}
           element={<SettingsNewEmailingDomain />}
@@ -615,7 +689,7 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
       <Route
         element={
           <SettingsProtectedRouteWrapper
-            requiredFeatureFlag={FeatureFlagKey.IS_APPLICATION_ENABLED}
+            settingsPermission={PermissionFlagType.APPLICATIONS}
           />
         }
       >
@@ -684,6 +758,18 @@ export const SettingsRoutes = ({ isAdminPageEnabled }: SettingsRoutesProps) => (
           <Route
             path={SettingsPath.AdminPanelConfigVariableDetails}
             element={<SettingsAdminConfigVariableDetails />}
+          />
+          <Route
+            path={SettingsPath.AdminPanelNewAiProvider}
+            element={<SettingsAdminNewAiProvider />}
+          />
+          <Route
+            path={SettingsPath.AdminPanelNewAiModel}
+            element={<SettingsAdminNewAiModel />}
+          />
+          <Route
+            path={SettingsPath.AdminPanelAiProviderDetail}
+            element={<SettingsAdminAiProviderDetail />}
           />
         </>
       )}

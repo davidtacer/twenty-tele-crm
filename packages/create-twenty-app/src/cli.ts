@@ -13,10 +13,10 @@ const program = new Command(packageJson.name)
     'Output the current version of create-twenty-app.',
   )
   .argument('[directory]')
-  .option('-e, --exhaustive', 'Create all example entities (default)')
+  .option('-e, --exhaustive', 'Create all example entities')
   .option(
     '-m, --minimal',
-    'Create only core entities (application-config and default-role)',
+    'Create only core entities (application-config and default-role) (default)',
   )
   .option('-n, --name <name>', 'Application name (skips prompt)')
   .option(
@@ -26,6 +26,10 @@ const program = new Command(packageJson.name)
   .option(
     '--description <description>',
     'Application description (skips prompt)',
+  )
+  .option(
+    '--skip-local-instance',
+    'Skip the local Twenty instance setup prompt',
   )
   .helpOption('-h, --help', 'Display this help message.')
   .action(
@@ -37,6 +41,7 @@ const program = new Command(packageJson.name)
         name?: string;
         displayName?: string;
         description?: string;
+        skipLocalInstance?: boolean;
       },
     ) => {
       const modeFlags = [options?.exhaustive, options?.minimal].filter(Boolean);
@@ -64,7 +69,9 @@ const program = new Command(packageJson.name)
         process.exit(1);
       }
 
-      const mode: ScaffoldingMode = options?.minimal ? 'minimal' : 'exhaustive';
+      const mode: ScaffoldingMode = options?.exhaustive
+        ? 'exhaustive'
+        : 'minimal';
 
       await new CreateAppCommand().execute({
         directory,
@@ -72,6 +79,7 @@ const program = new Command(packageJson.name)
         name: options?.name,
         displayName: options?.displayName,
         description: options?.description,
+        skipLocalInstance: options?.skipLocalInstance,
       });
     },
   );

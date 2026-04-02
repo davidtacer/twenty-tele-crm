@@ -13,9 +13,11 @@ import {
   agentChatUsageState,
   type AgentChatLastMessageUsage,
 } from '@/ai/states/agentChatUsageState';
-import { SettingsBillingLabelValueItem } from '@/billing/components/internal/SettingsBillingLabelValueItem';
+import { SettingsBillingLabelValueItem } from '@/settings/billing/components/internal/SettingsBillingLabelValueItem';
+import { billingState } from '@/client-config/states/billingState';
 import { useAtomComponentSelectorValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentSelectorValue';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
+import { formatNumber } from '~/utils/format/formatNumber';
 
 const StyledContainer = styled.div`
   position: relative;
@@ -77,30 +79,6 @@ const StyledSectionTitle = styled.span`
   padding-bottom: ${themeCssVariables.spacing[2]};
 `;
 
-const formatTokenCount = (count: number): string => {
-  if (count >= 1_000_000_000) {
-    return `${(count / 1_000_000_000).toFixed(1)}B`;
-  }
-  if (count >= 1_000_000) {
-    return `${(count / 1_000_000).toFixed(1)}M`;
-  }
-  if (count >= 1_000) {
-    return `${(count / 1_000).toFixed(1)}K`;
-  }
-  return count.toString();
-};
-
-const formatCredits = (credits: number): string => {
-  if (Number.isInteger(credits)) {
-    return credits.toLocaleString();
-  }
-
-  return credits.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  });
-};
-
 const getCachedLabel = (lastMessage: AgentChatLastMessageUsage): string => {
   if (lastMessage.cachedInputTokens <= 0 || lastMessage.inputTokens <= 0) {
     return '';
@@ -117,6 +95,19 @@ export const AIChatContextUsageButton = () => {
   const { t } = useLingui();
   const [isHovered, setIsHovered] = useState(false);
   const agentChatUsage = useAtomStateValue(agentChatUsageState);
+  const billing = useAtomStateValue(billingState);
+  const isBillingEnabled = billing?.isBillingEnabled ?? false;
+
+  // Values from the streaming API arrive as display credits (micro-credits / 1000).
+  // 1000 display credits = $1. Convert accordingly.
+  const formatChatCost = (displayCredits: number): string => {
+    if (isBillingEnabled) {
+      return `${formatNumber(displayCredits, { decimals: 1 })} credits`;
+    }
+    const dollars = displayCredits / 1000;
+
+    return `$${formatNumber(dollars, { decimals: 2 })}`;
+  };
 
   const hasMessages = useAtomComponentSelectorValue(
     agentChatHasMessageComponentSelector,
@@ -164,8 +155,15 @@ export const AIChatContextUsageButton = () => {
                 {formattedPercentage}%
               </StyledContextWindowValue>
               <StyledContextWindowValue>
-                {formatTokenCount(agentChatUsage.conversationSize)} /{' '}
-                {formatTokenCount(agentChatUsage.contextWindowTokens)}{' '}
+                {formatNumber(agentChatUsage.conversationSize, {
+                  abbreviate: true,
+                  decimals: 1,
+                })}{' '}
+                /{' '}
+                {formatNumber(agentChatUsage.contextWindowTokens, {
+                  abbreviate: true,
+                  decimals: 1,
+                })}{' '}
                 {t`tokens`}
               </StyledContextWindowValue>
             </StyledRow>
@@ -193,15 +191,23 @@ export const AIChatContextUsageButton = () => {
                 <StyledSectionTitle>{t`Last message`}</StyledSectionTitle>
                 <SettingsBillingLabelValueItem
                   label={t`Input tokens`}
-                  value={`${formatTokenCount(lastMessage.inputTokens)}${getCachedLabel(lastMessage)}`}
+                  value={`${formatNumber(lastMessage.inputTokens, {
+                    abbreviate: true,
+                    decimals: 1,
+                  })}${getCachedLabel(lastMessage)}`}
                 />
                 <SettingsBillingLabelValueItem
                   label={t`Output tokens`}
-                  value={formatTokenCount(lastMessage.outputTokens)}
+                  value={formatNumber(lastMessage.outputTokens, {
+                    abbreviate: true,
+                    decimals: 1,
+                  })}
                 />
                 <SettingsBillingLabelValueItem
                   label={t`Cost`}
-                  value={`${formatCredits(lastMessage.inputCredits + lastMessage.outputCredits)} ${t`credits`}`}
+                  value={formatChatCost(
+                    lastMessage.inputCredits + lastMessage.outputCredits,
+                  )}
                 />
               </StyledSection>
             </>
@@ -215,15 +221,21 @@ export const AIChatContextUsageButton = () => {
             <StyledSectionTitle>{t`Conversation`}</StyledSectionTitle>
             <SettingsBillingLabelValueItem
               label={t`Input tokens`}
-              value={formatTokenCount(agentChatUsage.inputTokens)}
+              value={formatNumber(agentChatUsage.inputTokens, {
+                abbreviate: true,
+                decimals: 1,
+              })}
             />
             <SettingsBillingLabelValueItem
               label={t`Output tokens`}
-              value={formatTokenCount(agentChatUsage.outputTokens)}
+              value={formatNumber(agentChatUsage.outputTokens, {
+                abbreviate: true,
+                decimals: 1,
+              })}
             />
             <SettingsBillingLabelValueItem
               label={t`Total cost`}
-              value={`${formatCredits(totalCredits)} ${t`credits`}`}
+              value={formatChatCost(totalCredits)}
             />
           </StyledSection>
         </StyledHoverCard>

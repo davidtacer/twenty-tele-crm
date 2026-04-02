@@ -1,6 +1,6 @@
 import { currentWorkspaceState } from '@/auth/states/currentWorkspaceState';
 import { useObjectMetadataItemById } from '@/object-metadata/hooks/useObjectMetadataItemById';
-import { isFilterOperandExpectingValue } from '@/object-record/object-filter-dropdown/utils/isFilterOperandExpectingValue';
+import { mapRLSOperandToRecordFilterOperand } from '@/object-record/record-filter/utils/mapRLSOperandToRecordFilterOperand';
 import { SettingsPageContainer } from '@/settings/components/SettingsPageContainer';
 import { SettingsRolePermissionsObjectLevelObjectFieldPermissionTable } from '@/settings/roles/role-permissions/object-level-permissions/field-permissions/components/SettingsRolePermissionsObjectLevelObjectFieldPermissionTable';
 import { SettingsRolePermissionsObjectLevelObjectFormObjectLevel } from '@/settings/roles/role-permissions/object-level-permissions/object-form/components/SettingsRolePermissionsObjectLevelObjectFormObjectLevel';
@@ -8,18 +8,20 @@ import { SettingsRolePermissionsObjectLevelRecordLevelSection } from '@/settings
 import { settingsDraftRoleFamilyState } from '@/settings/roles/states/settingsDraftRoleFamilyState';
 import { SubMenuTopBarContainer } from '@/ui/layout/page/components/SubMenuTopBarContainer';
 import { useAtomFamilyStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomFamilyStateValue';
-import { useFeatureFlagsMap } from '@/workspace/hooks/useFeatureFlagsMap';
 import { t } from '@lingui/core/macro';
 import { useSearchParams } from 'react-router-dom';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { SettingsPath, type ViewFilterOperand } from 'twenty-shared/types';
-import { getSettingsPath, isDefined } from 'twenty-shared/utils';
+import { SettingsPath } from 'twenty-shared/types';
+import {
+  getSettingsPath,
+  isDefined,
+  isRecordFilterValueValid,
+} from 'twenty-shared/utils';
 import { Button } from 'twenty-ui/input';
 import { useQuery } from '@apollo/client/react';
 import {
   type BillingEntitlement,
   BillingEntitlementKey,
-  FeatureFlagKey,
   FindOneAgentDocument,
 } from '~/generated-metadata/graphql';
 
@@ -51,8 +53,6 @@ export const SettingsRolePermissionsObjectLevelObjectForm = ({
     objectId: objectMetadataId,
   });
 
-  const featureFlagsMap = useFeatureFlagsMap();
-
   const workspaceBillingEntitlements = currentWorkspace?.billingEntitlements;
 
   const isRLSBillingEntitlementEnabled =
@@ -61,9 +61,6 @@ export const SettingsRolePermissionsObjectLevelObjectForm = ({
         entitlement.key === BillingEntitlementKey.RLS &&
         entitlement.value === true,
     ) ?? false;
-
-  const isRowLevelPermissionPredicatesEnabled =
-    featureFlagsMap[FeatureFlagKey.IS_ROW_LEVEL_PERMISSION_PREDICATES_ENABLED];
 
   const objectMetadataItem = objectMetadata.objectMetadataItem;
 
@@ -128,17 +125,10 @@ export const SettingsRolePermissionsObjectLevelObjectForm = ({
       return false;
     }
 
-    const operand = predicate.operand as unknown as ViewFilterOperand;
-
-    if (!isFilterOperandExpectingValue(operand)) {
-      return false;
-    }
-
-    return (
-      !isDefined(predicate.value) ||
-      predicate.value === '' ||
-      predicate.value === '[]'
-    );
+    return !isRecordFilterValueValid({
+      operand: mapRLSOperandToRecordFilterOperand(predicate.operand),
+      value: predicate.value ?? '',
+    });
   });
 
   const isFinishDisabled = hasInvalidPredicate;
@@ -167,13 +157,11 @@ export const SettingsRolePermissionsObjectLevelObjectForm = ({
           objectMetadataItem={objectMetadataItem}
           roleId={roleId}
         />
-        {isRowLevelPermissionPredicatesEnabled && (
-          <SettingsRolePermissionsObjectLevelRecordLevelSection
-            objectMetadataItem={objectMetadataItem}
-            roleId={roleId}
-            hasOrganizationPlan={isRLSBillingEntitlementEnabled}
-          />
-        )}
+        <SettingsRolePermissionsObjectLevelRecordLevelSection
+          objectMetadataItem={objectMetadataItem}
+          roleId={roleId}
+          hasOrganizationPlan={isRLSBillingEntitlementEnabled}
+        />
       </SettingsPageContainer>
     </SubMenuTopBarContainer>
   );

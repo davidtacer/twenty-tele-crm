@@ -15,9 +15,10 @@ import { assertIsDefinedOrThrow, isDefined } from 'twenty-shared/utils';
 
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { ApiKeyEntity } from 'src/engine/core-modules/api-key/api-key.entity';
-import { ApplicationDTO } from 'src/engine/core-modules/application/dtos/application.dto';
 import { ApplicationService } from 'src/engine/core-modules/application/application.service';
+import { ApplicationDTO } from 'src/engine/core-modules/application/dtos/application.dto';
 import { fromFlatApplicationToApplicationDto } from 'src/engine/core-modules/application/utils/from-flat-application-to-application-dto.util';
+import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { BillingEntitlementDTO } from 'src/engine/core-modules/billing/dtos/billing-entitlement.dto';
 import { BillingSubscriptionEntity } from 'src/engine/core-modules/billing/entities/billing-subscription.entity';
 import { BillingSubscriptionService } from 'src/engine/core-modules/billing/services/billing-subscription.service';
@@ -34,7 +35,6 @@ import { PreventNestToAutoLogGraphqlErrorsFilter } from 'src/engine/core-modules
 import { ResolverValidationPipe } from 'src/engine/core-modules/graphql/pipes/resolver-validation.pipe';
 import { TwentyConfigService } from 'src/engine/core-modules/twenty-config/twenty-config.service';
 import { UserWorkspaceService } from 'src/engine/core-modules/user-workspace/user-workspace.service';
-import { type AuthContextUser } from 'src/engine/core-modules/auth/types/auth-context.type';
 import { ActivateWorkspaceInput } from 'src/engine/core-modules/workspace/dtos/activate-workspace-input';
 import {
   type AuthProvidersDTO,
@@ -221,20 +221,6 @@ export class WorkspaceResolver {
     return workspace.smartModel;
   }
 
-  @ResolveField(() => Boolean, { nullable: false })
-  async autoEnableNewAiModels(
-    @Parent() workspace: WorkspaceEntity,
-  ): Promise<boolean> {
-    return workspace.autoEnableNewAiModels;
-  }
-
-  @ResolveField(() => [String], { nullable: true })
-  async disabledAiModelIds(
-    @Parent() workspace: WorkspaceEntity,
-  ): Promise<string[]> {
-    return workspace.disabledAiModelIds;
-  }
-
   @ResolveField(() => [String], { nullable: true })
   async enabledAiModelIds(
     @Parent() workspace: WorkspaceEntity,
@@ -362,7 +348,8 @@ export class WorkspaceResolver {
   @ResolveField(() => [ViewDTO])
   async views(
     @Parent() workspace: WorkspaceEntity,
-    @AuthUserWorkspaceId() userWorkspaceId: string | undefined,
+    @AuthUserWorkspaceId({ allowUndefined: true })
+    userWorkspaceId: string | undefined,
   ): Promise<ViewDTO[]> {
     return this.viewService.findByWorkspaceId(workspace.id, userWorkspaceId);
   }
@@ -404,15 +391,12 @@ export class WorkspaceResolver {
 
       let workspaceLogoWithToken = '';
 
-      if (workspace.logo) {
-        try {
-          workspaceLogoWithToken = this.fileService.signFileUrl({
-            url: workspace.logo,
-            workspaceId: workspace.id,
-          });
-        } catch {
-          workspaceLogoWithToken = workspace.logo;
-        }
+      if (isDefined(workspace.logoFileId)) {
+        workspaceLogoWithToken = this.fileUrlService.signFileByIdUrl({
+          fileId: workspace.logoFileId,
+          workspaceId: workspace.id,
+          fileFolder: FileFolder.CorePicture,
+        });
       }
 
       return {

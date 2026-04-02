@@ -19,6 +19,8 @@ export const getFlatObjectMetadataMock = (
   return {
     viewIds: [],
     indexMetadataIds: [],
+    objectPermissionIds: [],
+    fieldPermissionIds: [],
     fieldIds: [],
     description: 'default flat object metadata description',
     icon: 'icon',
@@ -48,6 +50,8 @@ export const getFlatObjectMetadataMock = (
     duplicateCriteria: null,
     applicationUniversalIdentifier: applicationId,
     fieldUniversalIdentifiers: [],
+    objectPermissionUniversalIdentifiers: [],
+    fieldPermissionUniversalIdentifiers: [],
     viewUniversalIdentifiers: [],
     indexMetadataUniversalIdentifiers: [],
     labelIdentifierFieldMetadataUniversalIdentifier:

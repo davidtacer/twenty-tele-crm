@@ -1,12 +1,13 @@
 import { CommandMenuItem } from '@/command-menu/components/CommandMenuItem';
 import { CommandMenuItemToggle } from '@/command-menu/components/CommandMenuItemToggle';
+import { useDeletePageLayoutWidget } from '@/page-layout/hooks/useDeletePageLayoutWidget';
 import { useFieldsWidgetGroups } from '@/page-layout/widgets/fields/hooks/useFieldsWidgetGroups';
 import { SidePanelGroup } from '@/side-panel/components/SidePanelGroup';
 import { SidePanelList } from '@/side-panel/components/SidePanelList';
 import { useSidePanelSubPageHistory } from '@/side-panel/hooks/useSidePanelSubPageHistory';
 import { NewFieldDefaultVisibilityToggle } from '@/side-panel/pages/page-layout/components/NewFieldDefaultVisibilityToggle';
 import { WidgetSettingsFooter } from '@/side-panel/pages/page-layout/components/WidgetSettingsFooter';
-import { usePageLayoutIdForRecordPageLayoutFromContextStoreTargetedRecord } from '@/side-panel/pages/page-layout/hooks/usePageLayoutIdForRecordPageLayoutFromContextStoreTargetedRecord';
+import { usePageLayoutIdFromContextStore } from '@/side-panel/pages/page-layout/hooks/usePageLayoutIdFromContextStore';
 import { useUpdateCurrentWidgetConfig } from '@/side-panel/pages/page-layout/hooks/useUpdateCurrentWidgetConfig';
 import { useWidgetInEditMode } from '@/side-panel/pages/page-layout/hooks/useWidgetInEditMode';
 import { SidePanelSubPages } from '@/side-panel/types/SidePanelSubPages';
@@ -14,7 +15,11 @@ import { SelectableListItem } from '@/ui/layout/selectable-list/components/Selec
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { isDefined } from 'twenty-shared/utils';
-import { IconChevronDown, IconLayoutSidebarRight } from 'twenty-ui/display';
+import {
+  IconChevronDown,
+  IconLayoutSidebarRight,
+  IconTrash,
+} from 'twenty-ui/display';
 import { type FieldsConfiguration } from '~/generated-metadata/graphql';
 
 const StyledContainer = styled.div`
@@ -34,10 +39,12 @@ export const SidePanelPageLayoutFieldsSettings = () => {
   const { t } = useLingui();
   const { navigateToSidePanelSubPage } = useSidePanelSubPageHistory();
   const { pageLayoutId, objectNameSingular } =
-    usePageLayoutIdForRecordPageLayoutFromContextStoreTargetedRecord();
+    usePageLayoutIdFromContextStore();
 
   const { updateCurrentWidgetConfig } =
     useUpdateCurrentWidgetConfig(pageLayoutId);
+
+  const { deletePageLayoutWidget } = useDeletePageLayoutWidget(pageLayoutId);
 
   const { widgetInEditMode } = useWidgetInEditMode(pageLayoutId);
 
@@ -73,6 +80,10 @@ export const SidePanelPageLayoutFieldsSettings = () => {
           !isShouldAllowUserToSeeHiddenFieldsToggled,
       },
     });
+  };
+
+  const handleDelete = () => {
+    deletePageLayoutWidget(widgetInEditMode.id);
   };
 
   const selectableItemIds = [
@@ -123,6 +134,16 @@ export const SidePanelPageLayoutFieldsSettings = () => {
               pageLayoutId={pageLayoutId}
               widgetId={widgetInEditMode.id}
             />
+          </SidePanelGroup>
+          <SidePanelGroup heading={t`Manage`}>
+            <SelectableListItem itemId="delete" onEnter={handleDelete}>
+              <CommandMenuItem
+                id="delete"
+                Icon={IconTrash}
+                label={t`Delete widget`}
+                onClick={handleDelete}
+              />
+            </SelectableListItem>
           </SidePanelGroup>
         </SidePanelList>
       </StyledSidePanelContainer>

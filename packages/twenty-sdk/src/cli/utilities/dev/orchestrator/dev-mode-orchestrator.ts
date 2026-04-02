@@ -4,7 +4,6 @@ import { ConfigService } from '@/cli/utilities/config/config-service';
 import { type OrchestratorState } from '@/cli/utilities/dev/orchestrator/dev-mode-orchestrator-state';
 import { BuildManifestOrchestratorStep } from '@/cli/utilities/dev/orchestrator/steps/build-manifest-orchestrator-step';
 import { CheckServerOrchestratorStep } from '@/cli/utilities/dev/orchestrator/steps/check-server-orchestrator-step';
-import { EnsureValidTokensOrchestratorStep } from '@/cli/utilities/dev/orchestrator/steps/ensure-valid-tokens-orchestrator-step';
 import { GenerateApiClientOrchestratorStep } from '@/cli/utilities/dev/orchestrator/steps/generate-api-client-orchestrator-step';
 import { RegisterAppOrchestratorStep } from '@/cli/utilities/dev/orchestrator/steps/register-app-orchestrator-step';
 import {
@@ -21,6 +20,7 @@ import { OUTPUT_DIR, type Manifest } from 'twenty-shared/application';
 export type DevModeOrchestratorOptions = {
   state: OrchestratorState;
   debounceMs?: number;
+  verbose?: boolean;
 };
 
 export class DevModeOrchestrator {
@@ -31,9 +31,9 @@ export class DevModeOrchestrator {
 
   private apiService: ApiService;
   private clientService: ClientService;
+  private verbose: boolean;
   private skipTypecheck = true;
   private checkServerStep: CheckServerOrchestratorStep;
-  private ensureValidTokensStep: EnsureValidTokensOrchestratorStep;
   private buildManifestStep: BuildManifestOrchestratorStep;
   private registerAppStep: RegisterAppOrchestratorStep;
   private uploadFilesStep: UploadFilesOrchestratorStep;
@@ -44,6 +44,7 @@ export class DevModeOrchestrator {
   constructor(options: DevModeOrchestratorOptions) {
     this.debounceMs = options.debounceMs ?? 200;
     this.state = options.state;
+    this.verbose = options.verbose ?? false;
 
     this.apiService = new ApiService({ disableInterceptors: true });
     const apiService = this.apiService;
@@ -55,18 +56,16 @@ export class DevModeOrchestrator {
       ...stepDeps,
       apiService,
     });
-    this.ensureValidTokensStep = new EnsureValidTokensOrchestratorStep({
-      ...stepDeps,
-      apiService,
-      configService,
-    });
     this.buildManifestStep = new BuildManifestOrchestratorStep(stepDeps);
     this.registerAppStep = new RegisterAppOrchestratorStep({
       ...stepDeps,
       apiService,
       configService,
     });
-    this.uploadFilesStep = new UploadFilesOrchestratorStep(stepDeps);
+    this.uploadFilesStep = new UploadFilesOrchestratorStep({
+      ...stepDeps,
+      verbose: this.verbose,
+    });
     this.generateApiClientStep = new GenerateApiClientOrchestratorStep({
       ...stepDeps,
       clientService: this.clientService,
@@ -75,12 +74,14 @@ export class DevModeOrchestrator {
     this.syncApplicationStep = new SyncApplicationOrchestratorStep({
       ...stepDeps,
       apiService,
+      verbose: this.verbose,
     });
     this.startWatchersStep = new StartWatchersOrchestratorStep({
       ...stepDeps,
       scheduleSync: this.scheduleSync.bind(this),
       onFileBuilt: this.handleFileBuilt.bind(this),
       shouldSkipTypecheck: () => this.skipTypecheck,
+      verbose: this.verbose,
     });
   }
 
@@ -89,6 +90,14 @@ export class DevModeOrchestrator {
 
     await ensureDir(outputDir);
     await emptyDir(outputDir);
+
+    if (!this.verbose) {
+      this.state.addEvent({
+        message: 'Add --verbose to see fully detailed logs',
+        status: 'info',
+      });
+      this.state.notify();
+    }
 
     await this.startWatchersStep.start();
 
@@ -167,9 +176,7 @@ export class DevModeOrchestrator {
       return;
     }
 
-    await this.ensureValidTokensStep.execute({
-      applicationId: this.state.steps.resolveApplication.output.applicationId,
-    });
+    this.state.steps.ensureValidTokens.status = 'done';
 
     const buildResult = await this.buildManifestStep.execute({
       appPath: this.state.appPath,
@@ -201,16 +208,16 @@ export class DevModeOrchestrator {
       appPath: this.state.appPath,
     });
 
+    if (this.state.steps.syncApplication.status === 'error') {
+      return;
+    }
+
     if (objectsOrFieldsChanged) {
       await this.generateApiClientStep.execute({
         appPath: this.state.appPath,
       });
 
       this.skipTypecheck = false;
-
-      await this.uploadFilesStep.copyAndUploadApiClientFiles(
-        this.state.appPath,
-      );
     }
   }
 
@@ -228,6 +235,7 @@ export class DevModeOrchestrator {
           message: 'Failed to create development application',
           status: 'error',
         },
+        { message: JSON.stringify(createResult, null, 2), status: 'error' },
       ]);
       this.state.updatePipeline({ status: 'error' });
 
@@ -243,10 +251,6 @@ export class DevModeOrchestrator {
     this.state.applyStepEvents([
       { message: 'Application created', status: 'success' },
     ]);
-
-    await this.ensureValidTokensStep.exchangeTokens({
-      applicationId: createResult.data.id,
-    });
 
     this.uploadFilesStep.initialize({
       appPath: this.state.appPath,

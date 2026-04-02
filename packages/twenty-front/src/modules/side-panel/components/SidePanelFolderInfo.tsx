@@ -9,8 +9,8 @@ import { NavigationMenuItemStyleIcon } from '@/navigation-menu-item/display/comp
 import { FOLDER_ICON_DEFAULT } from '@/navigation-menu-item/common/constants/FolderIconDefault';
 import { NavigationMenuItemType } from 'twenty-shared/types';
 import { useUpdateFolderInDraft } from '@/navigation-menu-item/edit/folder/hooks/useUpdateFolderInDraft';
-import { useWorkspaceSectionItems } from '@/navigation-menu-item/display/hooks/useWorkspaceSectionItems';
-import { selectedNavigationMenuItemInEditModeState } from '@/navigation-menu-item/common/states/selectedNavigationMenuItemInEditModeState';
+import { useNavigationMenuItemSectionItems } from '@/navigation-menu-item/display/hooks/useNavigationMenuItemSectionItems';
+import { selectedNavigationMenuItemIdInEditModeState } from '@/navigation-menu-item/common/states/selectedNavigationMenuItemIdInEditModeState';
 import { IconPicker } from '@/ui/input/components/IconPicker';
 import { TitleInput } from '@/ui/input/components/TitleInput';
 import { useAtomComponentState } from '@/ui/utilities/state/jotai/hooks/useAtomComponentState';
@@ -29,20 +29,20 @@ export const SidePanelFolderInfo = () => {
       sidePanelShouldFocusTitleInputComponentState,
       sidePanelPageInfo.instanceId,
     );
-  const selectedNavigationMenuItemInEditMode = useAtomStateValue(
-    selectedNavigationMenuItemInEditModeState,
+  const selectedNavigationMenuItemIdInEditMode = useAtomStateValue(
+    selectedNavigationMenuItemIdInEditModeState,
   );
-  const items = useWorkspaceSectionItems();
+  const items = useNavigationMenuItemSectionItems();
   const { updateFolderInDraft } = useUpdateFolderInDraft();
 
   const defaultLabel = t`New folder`;
   const placeholder = t`Folder name`;
 
-  const selectedItem = selectedNavigationMenuItemInEditMode
+  const selectedItem = selectedNavigationMenuItemIdInEditMode
     ? items.find(
         (item) =>
           item.type === NavigationMenuItemType.FOLDER &&
-          item.id === selectedNavigationMenuItemInEditMode,
+          item.id === selectedNavigationMenuItemIdInEditMode,
       )
     : undefined;
 

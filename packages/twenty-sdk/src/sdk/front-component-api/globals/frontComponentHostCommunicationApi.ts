@@ -39,6 +39,8 @@ export type EnqueueSnackbarFunction = (
 
 export type CloseSidePanelFunction = () => Promise<void>;
 
+export type UpdateProgressFunction = (progress: number) => Promise<void>;
+
 export type RequestAccessTokenRefreshFunction = () => Promise<string>;
 
 export type OpenCommandConfirmationModalHostFunction = (
@@ -53,13 +55,16 @@ export type FrontComponentHostCommunicationApiStore = {
   unmountFrontComponent?: UnmountFrontComponentFunction;
   enqueueSnackbar?: EnqueueSnackbarFunction;
   closeSidePanel?: CloseSidePanelFunction;
+  updateProgress?: UpdateProgressFunction;
 };
+
+import { FRONT_COMPONENT_HOST_COMMUNICATION_API_KEY } from '../constants/front-component-host-communication-api-key';
 
 declare global {
   var frontComponentHostCommunicationApi: FrontComponentHostCommunicationApiStore;
 }
 
-globalThis.frontComponentHostCommunicationApi ??= {};
+globalThis[FRONT_COMPONENT_HOST_COMMUNICATION_API_KEY] ??= {};
 
 export const frontComponentHostCommunicationApi =
   globalThis.frontComponentHostCommunicationApi;

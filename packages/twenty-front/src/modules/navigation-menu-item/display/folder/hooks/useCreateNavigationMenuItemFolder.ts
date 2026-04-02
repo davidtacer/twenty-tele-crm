@@ -1,20 +1,14 @@
 import { NavigationMenuItemType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { useMutation } from '@apollo/client/react';
-import { CreateNavigationMenuItemDocument } from '~/generated-metadata/graphql';
 
+import { useCreateManyNavigationMenuItems } from '@/navigation-menu-item/common/hooks/useCreateManyNavigationMenuItems';
 import { useNavigationMenuItemsData } from '@/navigation-menu-item/display/hooks/useNavigationMenuItemsData';
 
 export const useCreateNavigationMenuItemFolder = () => {
   const { navigationMenuItems, currentWorkspaceMemberId } =
     useNavigationMenuItemsData();
 
-  const [createNavigationMenuItemMutation] = useMutation(
-    CreateNavigationMenuItemDocument,
-    {
-      refetchQueries: ['FindManyNavigationMenuItems'],
-    },
-  );
+  const { createManyNavigationMenuItems } = useCreateManyNavigationMenuItems();
 
   const createNewNavigationMenuItemFolder = async (
     name: string,
@@ -23,34 +17,28 @@ export const useCreateNavigationMenuItemFolder = () => {
       return;
     }
 
-    const folderNavigationMenuItems = navigationMenuItems.filter(
+    const topLevelItems = navigationMenuItems.filter(
       (item) =>
-        isDefined(item.name) &&
-        !item.folderId &&
-        !item.targetRecordId &&
-        !item.targetObjectMetadataId &&
-        !item.viewId &&
+        !isDefined(item.folderId) &&
         item.userWorkspaceId === currentWorkspaceMemberId,
     );
 
-    const maxPosition = Math.max(
-      ...folderNavigationMenuItems.map((item) => item.position),
-      0,
-    );
+    const minPosition =
+      topLevelItems.length > 0
+        ? Math.min(...topLevelItems.map((item) => item.position))
+        : 1;
 
-    await createNavigationMenuItemMutation({
-      variables: {
-        input: {
-          type: NavigationMenuItemType.FOLDER,
-          name,
-          targetRecordId: null,
-          targetObjectMetadataId: null,
-          userWorkspaceId: currentWorkspaceMemberId,
-          folderId: null,
-          position: maxPosition + 1,
-        },
+    await createManyNavigationMenuItems([
+      {
+        type: NavigationMenuItemType.FOLDER,
+        name,
+        targetRecordId: null,
+        targetObjectMetadataId: null,
+        userWorkspaceId: currentWorkspaceMemberId,
+        folderId: null,
+        position: minPosition - 1,
       },
-    });
+    ]);
   };
 
   return { createNewNavigationMenuItemFolder };

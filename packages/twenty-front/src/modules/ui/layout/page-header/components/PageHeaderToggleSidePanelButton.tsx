@@ -1,12 +1,11 @@
 import { SIDE_PANEL_TOP_BAR_HEIGHT_MOBILE } from '@/side-panel/constants/SidePanelTopBarHeightMobile';
 import { useSidePanelMenu } from '@/side-panel/hooks/useSidePanelMenu';
 import { isSidePanelOpenedState } from '@/side-panel/states/isSidePanelOpenedState';
-import { isNavigationMenuInEditModeState } from '@/navigation-menu-item/common/states/isNavigationMenuInEditModeState';
+import { isLayoutCustomizationModeEnabledState } from '@/layout-customization/states/isLayoutCustomizationModeEnabledState';
 import { RootStackingContextZIndices } from '@/ui/layout/constants/RootStackingContextZIndices';
 import { PAGE_HEADER_SIDE_PANEL_BUTTON_CLICK_OUTSIDE_ID } from '@/ui/layout/page-header/constants/PageHeaderSidePanelButtonClickOutsideId';
 import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { styled } from '@linaria/react';
-import { i18n } from '@lingui/core';
 import { t } from '@lingui/core/macro';
 import { motion } from 'framer-motion';
 import { useContext } from 'react';
@@ -127,14 +126,14 @@ const AnimatedIcon = ({
 export const PageHeaderToggleSidePanelButton = () => {
   const { toggleSidePanelMenu } = useSidePanelMenu();
   const isSidePanelOpened = useAtomStateValue(isSidePanelOpenedState);
-  const isNavigationMenuInEditMode = useAtomStateValue(
-    isNavigationMenuInEditModeState,
+  const isLayoutCustomizationModeEnabled = useAtomStateValue(
+    isLayoutCustomizationModeEnabledState,
   );
 
   const isMobile = useIsMobile();
 
   const alignWithSidePanelTopBar =
-    isMobile && isNavigationMenuInEditMode && isSidePanelOpened;
+    isMobile && isLayoutCustomizationModeEnabled && isSidePanelOpened;
 
   const ariaLabel = isSidePanelOpened
     ? t`Close side panel`
@@ -167,7 +166,7 @@ export const PageHeaderToggleSidePanelButton = () => {
       <StyledTooltipWrapper>
         <AppTooltip
           anchorSelect="#toggle-side-panel-button"
-          content={i18n._(ariaLabel)}
+          content={ariaLabel}
           delay={TooltipDelay.longDelay}
           place={TooltipPosition.Bottom}
           offset={5}

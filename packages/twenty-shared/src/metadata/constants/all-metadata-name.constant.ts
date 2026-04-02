@@ -21,6 +21,9 @@ export const ALL_METADATA_NAME = {
   pageLayoutTab: 'pageLayoutTab',
   commandMenuItem: 'commandMenuItem',
   navigationMenuItem: 'navigationMenuItem',
+  permissionFlag: 'permissionFlag',
+  objectPermission: 'objectPermission',
+  fieldPermission: 'fieldPermission',
   frontComponent: 'frontComponent',
   webhook: 'webhook',
 } as const;

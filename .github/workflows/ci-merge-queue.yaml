@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'merge_group' && github.event.merge_group.base_ref || github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'merge_group' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   e2e-test:
@@ -25,12 +25,10 @@ jobs:
       NODE_OPTIONS: "--max-old-space-size=10240"
     services:
       postgres:
-        image: twentycrm/twenty-postgres-spilo
+        image: postgres:18
         env:
-          PGUSER_SUPERUSER: postgres
-          PGPASSWORD_SUPERUSER: postgres
-          ALLOW_NOSSL: "true"
-          SPILO_PROVIDER: "local"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-

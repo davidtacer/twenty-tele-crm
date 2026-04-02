@@ -40,6 +40,9 @@ export const optimisticallyApplyDeleteActionOnAllFlatEntityMaps = ({
     case 'commandMenuItem':
     case 'frontComponent':
     case 'navigationMenuItem':
+    case 'permissionFlag':
+    case 'objectPermission':
+    case 'fieldPermission':
     case 'webhook': {
       const flatEntityToDelete = findFlatEntityByIdInFlatEntityMapsOrThrow<
         MetadataFlatEntity<typeof flatAction.metadataName>
