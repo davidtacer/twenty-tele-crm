@@ -60,9 +60,6 @@ jobs:
               echo 'TWENTY_IMAGE=ghcr.io/davidtacer/twenty-tele-crm:latest' >> .env
             fi
 
-            # Pull latest compose/config from git
-            git -C /var/www/twenty pull origin main
-
             docker compose up -d --force-recreate server worker
 
             # Wait for server to be healthy
