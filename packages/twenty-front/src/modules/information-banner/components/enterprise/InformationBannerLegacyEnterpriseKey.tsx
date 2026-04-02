@@ -12,6 +12,9 @@ import { IconKey } from 'twenty-ui/display';
 const COMPONENT_INSTANCE_ID = 'information-banner-legacy-enterprise-key';
 
 export const InformationBannerLegacyEnterpriseKey = () => {
+  // Self-hosted: legacy key is intentional, hide the deprecation banner
+  return null;
+
   const { t } = useLingui();
   const navigate = useNavigate();
   const currentWorkspace = useAtomStateValue(currentWorkspaceState);
