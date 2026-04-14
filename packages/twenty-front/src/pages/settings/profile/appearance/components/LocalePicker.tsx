@@ -177,6 +177,10 @@ export const LocalePicker = () => {
       value: APP_LOCALES['ru-RU'],
     },
     {
+      label: t`Slovenian`,
+      value: APP_LOCALES['sl-SI'],
+    },
+    {
       label: t`Serbian (Cyrillic)`,
       value: APP_LOCALES['sr-Cyrl'],
     },

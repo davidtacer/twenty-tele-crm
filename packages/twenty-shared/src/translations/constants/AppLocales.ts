@@ -25,6 +25,7 @@ export const APP_LOCALES = {
   'pt-PT': 'pt-PT',
   'ro-RO': 'ro-RO',
   'ru-RU': 'ru-RU',
+  'sl-SI': 'sl-SI',
   'sr-Cyrl': 'sr-Cyrl',
   'sv-SE': 'sv-SE',
   'tr-TR': 'tr-TR',
