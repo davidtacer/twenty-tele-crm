@@ -28,7 +28,7 @@ import {
   defineRole,
   PermissionFlag,
   STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS,
-} from 'twenty-sdk';
+} from 'twenty-sdk/define';
 
 export default defineRole({
   universalIdentifier: '2c80f640-2083-4803-bb49-003e38279de6',
@@ -77,11 +77,11 @@ Her uygulamanın, şunları tanımlayan tam olarak bir adet `defineApplication` 
 * **(İsteğe bağlı) Kurulum öncesi / kurulum sonrası fonksiyonlar**: kurulumdan önce veya sonra çalışan mantık fonksiyonları.
 
 ```ts src/application-config.ts
-import { defineApplication } from 'twenty-sdk';
+import { defineApplication } from 'twenty-sdk/define';
 import { DEFAULT_ROLE_UNIVERSAL_IDENTIFIER } from 'src/roles/default-role';
 
 export default defineApplication({
-  universalIdentifier: '4ec0391d-18d5-411c-b2f3-266ddc1c3ef7',
+  universalIdentifier: '39783023-bcac-41e3-b0d2-ff1944d8465d',
   displayName: 'My Twenty App',
   description: 'My first Twenty app',
   icon: 'IconWorld',
@@ -132,7 +132,7 @@ Eğer [uygulamanızı yayımlamayı](/l/tr/developers/extend/apps/publishing) pl
 Yeni bir uygulama iskeleti oluşturduğunuzda, CLI varsayılan bir rol dosyası oluşturur:
 
 ```ts src/roles/default-role.ts
-import { defineRole, PermissionFlag } from 'twenty-sdk';
+import { defineRole, PermissionFlag } from 'twenty-sdk/define';
 
 export const DEFAULT_ROLE_UNIVERSAL_IDENTIFIER =
   'b648f87b-1d26-4961-b974-0908fd991061';
@@ -172,7 +172,7 @@ Notlar:
 Özel nesneler, çalışma alanınızdaki kayıtlar için hem şemayı hem de davranışı tanımlar. Yerleşik doğrulamayla nesneler tanımlamak için `defineObject()` kullanın:
 
 ```ts postCard.object.ts
-import { defineObject, FieldType } from 'twenty-sdk';
+import { defineObject, FieldType } from 'twenty-sdk/define';
 
 enum PostCardStatus {
   DRAFT = 'DRAFT',
@@ -261,7 +261,7 @@ ancak bu önerilmez.
 Sahibi olmadığınız nesnelere alan eklemek için `defineField()` kullanın — standart Twenty nesneleri (Person, Company, vb.) gibi. veya diğer uygulamalardaki nesneler. `defineObject()` içindeki satır içi alanların aksine, bağımsız alanlar hangi nesneyi genişlettiklerini belirtmek için bir `objectUniversalIdentifier` gerektirir:
 
 ```ts src/fields/company-loyalty-tier.field.ts
-import { defineField, FieldType } from 'twenty-sdk';
+import { defineField, FieldType } from 'twenty-sdk/define';
 
 export default defineField({
   universalIdentifier: 'f2a1b3c4-d5e6-7890-abcd-ef1234567890',
@@ -311,7 +311,7 @@ Bir `PostCard`'ın birçok `PostCardRecipient` kaydına gönderilebildiğini var
 **Adım 1: PostCard üzerinde ONE_TO_MANY tarafını tanımlayın** ("bir" taraf):
 
 ```ts src/fields/post-card-recipients-on-post-card.field.ts
-import { defineField, FieldType, RelationType } from 'twenty-sdk';
+import { defineField, FieldType, RelationType } from 'twenty-sdk/define';
 import { POST_CARD_UNIVERSAL_IDENTIFIER } from '../objects/post-card.object';
 import { POST_CARD_RECIPIENT_UNIVERSAL_IDENTIFIER } from '../objects/post-card-recipient.object';
 
@@ -338,7 +338,7 @@ export default defineField({
 **Adım 2: PostCardRecipient üzerinde MANY_TO_ONE tarafını tanımlayın** ("çok" taraf — yabancı anahtarı tutar):
 
 ```ts src/fields/post-card-on-post-card-recipient.field.ts
-import { defineField, FieldType, RelationType, OnDeleteAction } from 'twenty-sdk';
+import { defineField, FieldType, RelationType, OnDeleteAction } from 'twenty-sdk/define';
 import { POST_CARD_UNIVERSAL_IDENTIFIER } from '../objects/post-card.object';
 import { POST_CARD_RECIPIENT_UNIVERSAL_IDENTIFIER } from '../objects/post-card-recipient.object';
 
@@ -379,7 +379,7 @@ import {
   RelationType,
   OnDeleteAction,
   STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS,
-} from 'twenty-sdk';
+} from 'twenty-sdk/define';
 import { SELF_HOSTING_USER_UNIVERSAL_IDENTIFIER } from '../objects/self-hosting-user.object';
 
 export const PERSON_FIELD_ID = 'c3333333-3333-3333-3333-333333333333';
@@ -448,8 +448,8 @@ export default defineObject({
 Her fonksiyon dosyası, bir işleyici ve isteğe bağlı tetikleyiciler içeren bir yapılandırmayı dışa aktarmak için `defineLogicFunction()` kullanır.
 
 ```ts src/logic-functions/createPostCard.logic-function.ts
-import { defineLogicFunction } from 'twenty-sdk';
-import type { DatabaseEventPayload, ObjectRecordCreateEvent, CronPayload, RoutePayload } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
+import type { DatabaseEventPayload, ObjectRecordCreateEvent, CronPayload, RoutePayload } from 'twenty-sdk/define';
 import { CoreApiClient, type Person } from 'twenty-client-sdk/core';
 
 const handler = async (params: RoutePayload) => {
@@ -476,7 +476,7 @@ export default defineLogicFunction({
   httpRouteTriggerSettings: {
     path: '/post-card/create',
     httpMethod: 'GET',
-    isAuthRequired: false,
+    isAuthRequired: true,
   },
   /*databaseEventTriggerSettings: {
     eventName: 'people.created',
@@ -519,7 +519,7 @@ Bir rota tetikleyicisi mantık fonksiyonunuzu çağırdığında,
 `RoutePayload` türünü `twenty-sdk` içinden içe aktarın:
 
 ```ts
-import { defineLogicFunction, type RoutePayload } from 'twenty-sdk';
+import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
 
 const handler = async (event: RoutePayload) => {
   const { headers, queryStringParameters, pathParameters, body } = event;
@@ -531,15 +531,15 @@ const handler = async (event: RoutePayload) => {
 
 `RoutePayload` türünün yapısı şu şekildedir:
 
-  | Özellik                      | Tür                                   | Açıklama                                                                   | Örnek                                                                      |
-  | ---------------------------- | ------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-  | `headers`                    | `Record<string, string \| undefined>` | HTTP başlıkları (`forwardedRequestHeaders` içinde listelenenlerle sınırlı) | aşağıdaki bölüme bakın                                                     |
-  | `queryStringParameters`      | `Record<string, string \| undefined>` | Sorgu dizesi parametreleri (birden çok değer virgülle birleştirilir)       | `/users?ids=1&ids=2&ids=3&name=Alice` -> `{ ids: '1,2,3', name: 'Alice' }` |
-  | `pathParameters`             | `Record<string, string \| undefined>` | Rota deseninden çıkarılan yol parametreleri                                | `/users/:id`, `/users/123` -> `{ id: '123' }`                              |
-  | `body`                       | `object \| null`                      | Ayrıştırılmış istek gövdesi (JSON)                                         | `{ id: 1 }` -> `{ id: 1 }`                                                 |
-  | `isBase64Encoded`            | `boolean`                             | Gövdenin base64 ile kodlanıp kodlanmadığı                                  |                                                                            |
-  | `requestContext.http.method` | `string`                              | HTTP yöntemi (GET, POST, PUT, PATCH, DELETE)                               |                                                                            |
-  | `requestContext.http.path`   | `string`                              | Ham istek yolu                                                             |                                                                            |
+  | Özellik                      | Tür                                                     | Açıklama                                                                   | Örnek                                                                      |
+  | ---------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+  | `headers`                    | `Record\<string, string \| undefined>` | HTTP başlıkları (`forwardedRequestHeaders` içinde listelenenlerle sınırlı) | aşağıdaki bölüme bakın                                                     |
+  | `queryStringParameters`      | `Record\<string, string \| undefined>` | Sorgu dizesi parametreleri (birden çok değer virgülle birleştirilir)       | `/users?ids=1&ids=2&ids=3&name=Alice` -> `{ ids: '1,2,3', name: 'Alice' }` |
+  | `pathParameters`             | `Record\<string, string \| undefined>` | Rota deseninden çıkarılan yol parametreleri                                | `/users/:id`, `/users/123` -> `{ id: '123' }`                              |
+  | `body`                       | `object \| null`                                        | Ayrıştırılmış istek gövdesi (JSON)                                         | `{ id: 1 }` -> `{ id: 1 }`                                                 |
+  | `isBase64Encoded`            | `boolean`                                               | Gövdenin base64 ile kodlanıp kodlanmadığı                                  |                                                                            |
+  | `requestContext.http.method` | `string`                                                | HTTP yöntemi (GET, POST, PUT, PATCH, DELETE)                               |                                                                            |
+  | `requestContext.http.path`   | `string`                                                | Ham istek yolu                                                             |                                                                            |
 
 
 #### forwardedRequestHeaders
@@ -584,7 +584,7 @@ Mantık işlevleri, yapay zeka ajanları ve iş akışları için **araçlar** o
 Bir mantık fonksiyonunu araç olarak işaretlemek için `isTool: true` olarak ayarlayın:
 
 ```ts src/logic-functions/enrich-company.logic-function.ts
-import { defineLogicFunction } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
 import { CoreApiClient } from 'twenty-client-sdk/core';
 
 const handler = async (params: { companyName: string; domain?: string }) => {
@@ -645,48 +645,14 @@ export default defineLogicFunction({
 </Note>
 
 </Accordion>
-<Accordion title="definePreInstallLogicFunction" description="Bir kurulum öncesi mantık işlevi tanımlayın (uygulama başına bir adet)">
-
-Kurulum öncesi işlev, uygulamanız bir çalışma alanına yüklenmeden önce otomatik olarak çalışan bir mantık işlevidir. Bu, doğrulama görevleri, önkoşul kontrolleri veya ana kurulum başlamadan önce çalışma alanı durumunun hazırlanması için yararlıdır.
-
-```ts src/logic-functions/pre-install.ts
-import { definePreInstallLogicFunction, type InstallLogicFunctionPayload } from 'twenty-sdk';
-
-const handler = async (payload: InstallLogicFunctionPayload): Promise<void> => {
-  console.log('Pre install logic function executed successfully!', payload.previousVersion);
-};
-
-export default definePreInstallLogicFunction({
-  universalIdentifier: 'e0604b9e-e946-456b-886d-3f27d9a6b324',
-  name: 'pre-install',
-  description: 'Runs before installation to prepare the application.',
-  timeoutSeconds: 300,
-  handler,
-});
-```
-
-Ayrıca kurulum öncesi işlevi istediğiniz zaman CLI kullanarak manuel olarak çalıştırabilirsiniz:
-
-```bash filename="Terminal"
-yarn twenty exec --preInstall
-```
-
-Önemli noktalar:
-* Kurulum öncesi işlevler `definePreInstallLogicFunction()` kullanır — tetikleyici ayarlarını atlayan (`cronTriggerSettings`, `databaseEventTriggerSettings`, `httpRouteTriggerSettings`, `isTool`) özel bir varyanttır.
-* İşleyici, `{ previousVersion: string }` içeren bir `InstallLogicFunctionPayload` alır — daha önce yüklü olan uygulamanın sürümü (veya yeni kurulumlar için boş bir dize).
-* Uygulama başına yalnızca bir kurulum öncesi işlevine izin verilir. Birden fazla tespit edilirse manifest oluşturma hataya düşer.
-* İşlevin `universalIdentifier` değeri, oluşturma sırasında uygulama manifestinde otomatik olarak `preInstallLogicFunctionUniversalIdentifier` olarak ayarlanır — `defineApplication()` içinde buna atıfta bulunmanıza gerek yoktur.
-* Varsayılan zaman aşımı, daha uzun hazırlık görevlerine izin vermek için 300 saniye (5 dakika) olarak ayarlanmıştır.
-
-</Accordion>
 <Accordion title="definePostInstallLogicFunction" description="Bir kurulum sonrası mantık işlevi tanımlayın (uygulama başına bir adet)">
 
-Kurulum sonrası işlev, uygulamanız bir çalışma alanına yüklendikten sonra otomatik olarak çalışan bir mantık işlevidir. Bu, varsayılan verileri tohumlama, ilk kayıtları oluşturma veya çalışma alanı ayarlarını yapılandırma gibi tek seferlik kurulum görevleri için yararlıdır.
+Kurulum sonrası işlev, uygulamanız bir çalışma alanına yüklendikten sonra otomatik olarak çalışan bir mantık işlevidir. Sunucu, uygulamanın meta verileri senkronize edildikten ve SDK istemcisi oluşturulduktan **sonra** bunu yürütür; böylece çalışma alanı tamamen kullanıma hazırdır ve yeni şema kullanıma alınmıştır. Tipik kullanım örnekleri arasında varsayılan verilerin tohumlanması, başlangıç kayıtlarının oluşturulması, çalışma alanı ayarlarının yapılandırılması veya üçüncü taraf hizmetlerde kaynak sağlanması yer alır.
 
 ```ts src/logic-functions/post-install.ts
-import { definePostInstallLogicFunction, type InstallLogicFunctionPayload } from 'twenty-sdk';
+import { definePostInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
 
-const handler = async (payload: InstallLogicFunctionPayload): Promise<void> => {
+const handler = async (payload: InstallPayload): Promise<void> => {
   console.log('Post install logic function executed successfully!', payload.previousVersion);
 };
 
@@ -695,6 +661,8 @@ export default definePostInstallLogicFunction({
   name: 'post-install',
   description: 'Runs after installation to set up the application.',
   timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: false,
+  shouldRunSynchronously: false,
   handler,
 });
 ```
@@ -707,22 +675,187 @@ yarn twenty exec --postInstall
 
 Önemli noktalar:
 * Kurulum sonrası işlevler `definePostInstallLogicFunction()` kullanır — tetikleyici ayarlarını atlayan (`cronTriggerSettings`, `databaseEventTriggerSettings`, `httpRouteTriggerSettings`, `isTool`) özel bir varyanttır.
-* İşleyici, `{ previousVersion: string }` içeren bir `InstallLogicFunctionPayload` alır — daha önce yüklü olan uygulamanın sürümü (veya yeni kurulumlar için boş bir dize).
+* İşleyici, `{ previousVersion?: string; newVersion: string }` içeren bir `InstallPayload` alır — `newVersion`, yüklenen sürümdür; `previousVersion` ise daha önce yüklü olan sürümdür (veya ilk kurulumda `undefined`). Bu değerleri ilk kurulumları yükseltmelerden ayırt etmek ve sürüme özgü geçiş (migration) mantığını çalıştırmak için kullanın.
+* **Kanca ne zaman çalışır**: varsayılan olarak yalnızca ilk kurulumlarda. Uygulama önceki bir sürümden yükseltildiğinde de çalışmasını istiyorsanız `shouldRunOnVersionUpgrade: true` geçin. Belirtilmediğinde, bayrak varsayılan olarak `false` olur ve yükseltmeler kancayı atlar.
+* **Yürütme modeli — varsayılan olarak eşzamansız, isteğe bağlı senkron**: `shouldRunSynchronously` bayrağı kurulum sonrası işlemin *nasıl* yürütüldüğünü kontrol eder.
+  * `shouldRunSynchronously: false` *(varsayılan)* — kanca, `retryLimit: 3` ile **mesaj kuyruğuna alınır** ve bir worker içinde eşzamansız çalışır. İş kuyruğa alınır alınmaz kurulum yanıtı döner; dolayısıyla yavaşlayan veya hata veren bir işleyici çağıranı engellemez. Worker en fazla üç kez yeniden deneyecektir. **Bunu uzun süre çalışan işler için kullanın** — büyük veri kümelerini tohumlama, yavaş üçüncü taraf API'lerini çağırma, harici kaynakları sağlama; makul bir HTTP yanıt süresini aşabilecek her şey.
+  * `shouldRunSynchronously: true` — kanca **kurulum akışı sırasında satır içi** olarak yürütülür (kurulum öncesi ile aynı yürütücü). İşleyici bitene kadar kurulum isteği engellenir; hata fırlatırsa, kurulum çağıranı bir `POST_INSTALL_ERROR` alır. Otomatik yeniden deneme yok. **Bunu, yanıt dönmeden mutlaka tamamlanması gereken hızlı işler için kullanın** — örneğin, kullanıcıya bir doğrulama hatası iletmek veya kurulum çağrısı döner dönmez istemcinin ihtiyaç duyacağı hızlı bir kurulum yapmak. Kurulum sonrası çalıştığında, üstveri (metadata) geçişinin zaten uygulanmış olduğunu unutmayın; bu nedenle, senkron moddaki bir hata şema değişikliklerini **geri almaz** — yalnızca hatayı görünür kılar.
+* İşleyicinizin idempotent olduğundan emin olun. Eşzamansız modda kuyruk en fazla üç kez yeniden deneyebilir; her iki modda da `shouldRunOnVersionUpgrade: true` iken yükseltmelerde kanca tekrar çalışabilir.
+* Ortam değişkenleri `APPLICATION_ID`, `APP_ACCESS_TOKEN` ve `API_URL` işleyici içinde kullanılabilir (diğer mantık işlevlerinde olduğu gibi), böylece uygulamanıza özel kapsamda bir uygulama erişim belirteciyle Twenty API'sini çağırabilirsiniz.
 * Uygulama başına yalnızca bir kurulum sonrası işlevine izin verilir. Birden fazla tespit edilirse manifest oluşturma hataya düşer.
-* İşlevin `universalIdentifier` değeri, oluşturma sırasında uygulama manifestinde otomatik olarak `postInstallLogicFunctionUniversalIdentifier` olarak ayarlanır — `defineApplication()` içinde buna atıfta bulunmanıza gerek yoktur.
+* İşlevin `universalIdentifier`, `shouldRunOnVersionUpgrade` ve `shouldRunSynchronously` değerleri, derleme sırasında uygulama manifestine `postInstallLogicFunction` alanı altında otomatik olarak eklenir — bunlara `defineApplication()` içinde atıfta bulunmanıza gerek yoktur.
 * Varsayılan zaman aşımı, veri tohumlama gibi daha uzun kurulum görevlerine izin vermek için 300 saniye (5 dakika) olarak ayarlanmıştır.
+* **Geliştirme modunda çalıştırılmaz**: bir uygulama yerel olarak kaydedildiğinde (`yarn twenty dev` aracılığıyla), sunucu kurulum akışını tamamen atlar ve dosyaları doğrudan CLI watcher üzerinden eşitler — bu nedenle, `shouldRunSynchronously` ne olursa olsun, kurulum sonrası geliştirme modunda hiç çalışmaz. Çalışan bir çalışma alanında bunu elle tetiklemek için `yarn twenty exec --postInstall` kullanın.
+
+</Accordion>
+<Accordion title="definePreInstallLogicFunction" description="Bir kurulum öncesi mantık işlevi tanımlayın (uygulama başına bir adet)">
+
+Kurulum öncesi işlev, kurulum sırasında otomatik olarak çalışan ve **çalışma alanı üstveri (metadata) geçişi uygulanmadan önce** yürütülen bir mantık işlevidir. Kurulum sonrası ile (`InstallPayload`) aynı yük (payload) biçimini paylaşır, ancak kurulum akışında daha erken konumlandığından yaklaşan geçişin bağlı olduğu durumu hazırlayabilir — tipik kullanımlar arasında verileri yedeklemek, yeni şemayla uyumluluğu doğrulamak veya yeniden yapılandırılacak ya da kaldırılacak kayıtları arşivlemek yer alır.
+
+```ts src/logic-functions/pre-install.ts
+import { definePreInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+
+const handler = async (payload: InstallPayload): Promise<void> => {
+  console.log('Pre install logic function executed successfully!', payload.previousVersion);
+};
+
+export default definePreInstallLogicFunction({
+  universalIdentifier: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  name: 'pre-install',
+  description: 'Runs before installation to prepare the application.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: true,
+  handler,
+});
+```
+
+Ayrıca kurulum öncesi işlevi istediğiniz zaman CLI kullanarak manuel olarak çalıştırabilirsiniz:
+
+```bash filename="Terminal"
+yarn twenty exec --preInstall
+```
+
+Önemli noktalar:
+* Kurulum öncesi işlevler `definePreInstallLogicFunction()` kullanır — kurulum sonrasıyla aynı özel yapılandırma, sadece yaşam döngüsünde farklı bir yuvaya eklenir.
+* Hem kurulum öncesi hem de kurulum sonrası işleyiciler aynı `InstallPayload` türünü alır: `{ previousVersion?: string; newVersion: string }`. Bunu bir kez içe aktarın ve her iki kanca için yeniden kullanın.
+* **Kanca ne zaman çalışır**: çalışma alanı üstveri (metadata) geçişinden hemen önce konumlandırılır (`synchronizeFromManifest`). Çalıştırmadan önce, sunucu yalnızca ekleyici bir "indirgenmiş eşitleme" yürütür; bu, çalışma alanı üstverisinde **yeni** sürümün kurulum öncesi işlevini kaydeder — başka hiçbir şeye dokunulmaz — ve ardından bunu yürütür. Bu eşitleme yalnızca ekleyici olduğundan, işleyiciniz çalıştığında önceki sürümün nesneleri, alanları ve verileri hâlâ sağlamdır: geçiş öncesi durumu güvenle okuyabilir ve yedekleyebilirsiniz.
+* **Yürütme modeli**: kurulum öncesi **senkron** olarak yürütülür ve **kurulumu bloklar**. İşleyici bir hata fırlatırsa, herhangi bir şema değişikliği uygulanmadan önce kurulum iptal edilir — çalışma alanı, tutarlı bir durumda önceki sürümde kalır. Bu kasıtlıdır: kurulum öncesi, riskli bir yükseltmeyi reddetmek için son şansınızdır.
+* Kurulum sonrası ile aynı şekilde, uygulama başına yalnızca bir kurulum öncesi işlevine izin verilir. Derleme sırasında uygulama manifestine `preInstallLogicFunction` altında otomatik olarak eklenir.
+* **Geliştirme modunda çalıştırılmaz**: kurulum sonrasında olduğu gibi — yerel olarak kaydedilen uygulamalarda kurulum akışı tamamen atlanır, bu nedenle `yarn twenty dev` altında kurulum öncesi hiç çalışmaz. Bunu elle tetiklemek için `yarn twenty exec --preInstall` kullanın.
+
+</Accordion>
+<Accordion title="Kurulum öncesi vs kurulum sonrası: hangisini ne zaman kullanmalı" description="Doğru kurulum kancasını seçme">
+
+Her iki kanca da aynı kurulum akışının parçasıdır ve aynı `InstallPayload`'ı alır. Fark, çalışma alanı üstveri (metadata) geçişine göre **ne zaman** çalıştıklarıdır ve bu, güvenle erişebilecekleri verileri değiştirir.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ install flow                                                │
+│                                                             │
+│   upload package → [pre-install] → metadata migration →     │
+│   generate SDK → [post-install]                             │
+│                                                             │
+│                  old schema visible    new schema visible   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Kurulum öncesi her zaman **senkron**dur (kurulumu bloke eder ve iptal edebilir). Kurulum sonrası **varsayılan olarak asenkron**dur — otomatik yeniden denemelerle bir worker üzerinde kuyruğa alınır — ancak `shouldRunSynchronously: true` ile senkron yürütmeye geçebilir. Her modun ne zaman kullanılacağı için yukarıdaki `definePostInstallLogicFunction` akordeonuna bakın.
+
+**Yeni şemanın mevcut olmasını gerektiren her şey için `post-install` kullanın.** Bu yaygın durumdur:
+
+* Yeni eklenen nesne ve alanlara karşı varsayılan verileri tohumlama (ilk kayıtları, varsayılan görünümleri, demo içeriği oluşturma).
+* Uygulamanın kimlik bilgileri artık mevcut olduğuna göre, üçüncü taraf hizmetlerle webhook'ları kaydetmek.
+* Eşitlenmiş üstveriye (metadata) bağlı kurulumu tamamlamak için kendi API'nizi çağırmak.
+* Her yükseltmede durumu uzlaştırması gereken idempotent "bu mevcut olsun" mantığı — `shouldRunOnVersionUpgrade: true` ile birleştirin.
+
+Örnek — kurulumdan sonra varsayılan bir `PostCard` kaydı tohumlama:
+
+```ts src/logic-functions/post-install.ts
+import { definePostInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+import { createClient } from './generated/client';
+
+const handler = async ({ previousVersion }: InstallPayload): Promise<void> => {
+  if (previousVersion) return; // fresh installs only
+
+  const client = createClient();
+  await client.postCard.create({
+    data: { title: 'Welcome to Postcard', content: 'Your first card!' },
+  });
+};
+
+export default definePostInstallLogicFunction({
+  universalIdentifier: 'f7a2b9c1-3d4e-5678-abcd-ef9876543210',
+  name: 'post-install',
+  description: 'Seeds a welcome post card after install.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: false,
+  handler,
+});
+```
+
+**Bir geçiş mevcut verileri aksi takdirde silecek veya bozacaksa `pre-install` kullanın.** Kurulum öncesi *önceki* şemaya karşı çalıştığı ve hatalandığında yükseltmeyi geri aldığı için, riskli olan her şey için doğru yerdir:
+
+* **Kaldırılmak veya yeniden yapılandırılmak üzere olan verileri yedekleme** — örn. v2'de bir alanı kaldırıyorsunuz ve geçiş çalışmadan önce değerlerini başka bir alana kopyalamanız veya depolamaya aktarmanız gerekiyor.
+* **Yeni bir kısıtın geçersiz kılacağı kayıtları arşivleme** — örn. bir alan `NOT NULL` oluyor ve önce null değerli satırları silmeniz veya düzeltmeniz gerekiyor.
+* **Uyumluluğu doğrulama ve mevcut veriler temiz bir şekilde geçirilemiyorsa yükseltmeyi reddetme** — işleyiciden hata fırlatın ve kurulum, herhangi bir değişiklik uygulanmadan iptal edilir. Bu, uyumsuzluğu geçişin ortasında keşfetmekten daha güvenlidir.
+* İlişkilendirmeyi kaybettirecek bir şema değişikliğinden önce **verileri yeniden adlandırma veya yeniden anahtarlama**.
+
+Örnek — yıkıcı bir geçişten önce kayıtları arşivleme:
+
+```ts src/logic-functions/pre-install.ts
+import { definePreInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+import { createClient } from './generated/client';
+
+const handler = async ({ previousVersion, newVersion }: InstallPayload): Promise<void> => {
+  // Only the 1.x → 2.x upgrade drops the legacy `notes` field.
+  if (!previousVersion?.startsWith('1.') || !newVersion.startsWith('2.')) {
+    return;
+  }
+
+  const client = createClient();
+  const legacyRecords = await client.postCard.findMany({
+    where: { notes: { isNotNull: true } },
+  });
+
+  if (legacyRecords.length === 0) return;
+
+  // Copy legacy `notes` into the new `description` field before the migration
+  // drops the `notes` column. If this fails, the upgrade is aborted and the
+  // workspace stays on v1 with all data intact.
+  await Promise.all(
+    legacyRecords.map((record) =>
+      client.postCard.update({
+        where: { id: record.id },
+        data: { description: record.notes },
+      }),
+    ),
+  );
+};
+
+export default definePreInstallLogicFunction({
+  universalIdentifier: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  name: 'pre-install',
+  description: 'Backs up legacy notes into description before the v2 migration.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: true,
+  handler,
+});
+```
+
+**Kural olarak:**
+
+| Şunu yapmak istiyorsunuz…                                                                              | Kullan                                                                                      |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Varsayılan verileri tohumlamak, çalışma alanını yapılandırmak, harici kaynakları kaydetmek             | `post-install`                                                                              |
+| Kurulum yanıtını engellememesi gereken uzun süreli tohumlama veya üçüncü taraf çağrılarını çalıştırmak | `post-install` (varsayılan — `shouldRunSynchronously: false`, worker yeniden denemeleriyle) |
+| Kurulum çağrısı döner dönmez çağıranın güveneceği hızlı kurulumu çalıştırmak                           | `post-install` ile `shouldRunSynchronously: true`                                           |
+| Yaklaşan geçişin kaybedeceği verileri okumak veya yedeklemek                                           | `pre-install`                                                                               |
+| Mevcut verileri bozacak bir yükseltmeyi reddetmek                                                      | `pre-install` (işleyiciden hata fırlatmak)                                                  |
+| Her yükseltmede uzlaştırma çalıştırmak                                                                 | `post-install` ile `shouldRunOnVersionUpgrade: true`                                        |
+| Yalnızca ilk kurulumda tek seferlik kurulum yapmak                                                     | `post-install` ile `shouldRunOnVersionUpgrade: false` (varsayılan)                          |
+
+<Note>
+Emin değilseniz, varsayılan olarak **kurulum sonrası**nı tercih edin. Yalnızca geçişin kendisi yıkıcıysa ve önceki durum yok olmadan önce onu yakalamanız gerekiyorsa kurulum öncesine başvurun.
+</Note>
 
 </Accordion>
 <Accordion title="defineFrontComponent" description="Özel kullanıcı arayüzü için ön uç bileşenlerini tanımlayın">
 
 Ön uç bileşenler, Twenty'nin UI'si içinde doğrudan görüntülenen React bileşenleridir. Remote DOM kullanan izole bir Web Worker içinde çalışırlar — kodunuz izole bir ortamda (sandbox) çalışır ancak bir iframe içinde değil, sayfada yerel olarak işlenir.
 
+#### Ön bileşenlerin kullanılabileceği yerler
+
+Ön bileşenler, Twenty içinde iki konumda işlenebilir:
+
+* **Yan panel** — Headless olmayan ön bileşenler, sağ taraftaki yan panelde açılır. Bir ön bileşen komut menüsünden tetiklendiğinde varsayılan davranış budur.
+* **Widget'lar (panolar ve kayıt sayfaları)** — Ön bileşenler, sayfa düzenlerine widget olarak gömülebilir. Bir pano veya kayıt sayfası düzeni yapılandırılırken kullanıcılar bir ön bileşen widget'ı ekleyebilir.
+
 #### Basit örnek
 
 Bir ön uç bileşenini çalışırken görmenin en hızlı yolu, onu bir komut olarak kaydetmektir. `isPinned: true` ile bir `command` alanı eklemek, sayfanın sağ üst köşesinde hızlı işlem düğmesi olarak görünmesini sağlar — herhangi bir sayfa düzenine gerek yoktur:
 
 ```tsx src/front-components/hello-world.tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 
 const HelloWorld = () => {
   return (
@@ -749,7 +882,7 @@ export default defineFrontComponent({
 });
 ```
 
-`yarn twenty dev` ile senkronize ettikten sonra, hızlı işlem sayfanın sağ üst köşesinde görünür:
+`yarn twenty dev` ile senkronize ettikten sonra (veya tek seferlik bir `yarn twenty dev --once` çalıştırdıktan sonra), hızlı işlem sayfanın sağ üst köşesinde görünür:
 
 <div style={{textAlign: 'center'}}>
   <img src="/images/docs/developers/extends/apps/quick-action.png" alt="Sağ üst köşedeki hızlı işlem düğmesi" />
@@ -774,12 +907,17 @@ Bileşeni satır içi işlemek için üzerine tıklayın.
 
 Komutların ötesinde, bir ön uç bileşenini bir **sayfa düzeninde** widget olarak ekleyerek doğrudan bir kayıt sayfasına gömebilirsiniz. Ayrıntılar için [definePageLayout](#definepagelayout) bölümüne bakın.
 
-#### Headless bileşenler (`isHeadless: true`)
+#### Headless ve headless olmayan
 
-Headless bileşenler görünür bir kullanıcı arayüzü oluşturmaz ancak yine de React mantığını çalıştırır. Bu, **etki bileşenleri** için kullanışlıdır — bağlandıklarında veri senkronizasyonu yapmak, bir zamanlayıcı başlatmak, olayları dinlemek veya bir bildirimi tetiklemek gibi yan etkiler gerçekleştiren bileşenler.
+Ön bileşenler, `isHeadless` seçeneğiyle kontrol edilen iki işleme kipiyle gelir:
+
+**Headless olmayan (varsayılan)** — Bileşen görünür bir kullanıcı arayüzü (UI) oluşturur. Komut menüsünden tetiklendiğinde yan panelde açılır. `isHeadless` `false` olduğunda veya belirtilmediğinde bu varsayılan davranıştır.
+
+**Headless (`isHeadless: true`)** — Bileşen arka planda görünmez şekilde bağlanır. Yan paneli açmaz. Headless bileşenler, mantığı çalıştırıp ardından kendilerini kaldıran eylemler için tasarlanmıştır — örneğin, bir async görevi çalıştırma, bir sayfaya gitme veya bir onay modalı gösterme. Aşağıda açıklanan SDK Command bileşenleriyle doğal olarak eşleşirler.
 
 ```tsx src/front-components/sync-tracker.tsx
-import { defineFrontComponent, useRecordId, enqueueSnackbar } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { useRecordId, enqueueSnackbar } from 'twenty-sdk/front-component';
 import { useEffect } from 'react';
 
 const SyncTracker = () => {
@@ -803,17 +941,100 @@ export default defineFrontComponent({
 
 Bileşen `null` döndürdüğü için, Twenty bunun için bir kapsayıcı oluşturmayı atlar — düzende boş alan görünmez. Bileşen yine de tüm hook'lara ve host iletişim API'sine erişime sahiptir.
 
+#### SDK Command bileşenleri
+
+`twenty-sdk` paketi, headless ön bileşenler için tasarlanmış dört Command yardımcı bileşeni sağlar. Her bileşen bağlandığında bir eylem yürütür, hataları bir snackbar bildirimi göstererek ele alır ve tamamlandığında ön bileşeni otomatik olarak kaldırır.
+
+Bunları `twenty-sdk/command` içinden içe aktarın:
+
+* **`Command`** — `execute` prop'u aracılığıyla async bir geri çağrıyı çalıştırır.
+* **`CommandLink`** — Bir uygulama yoluna gider. Props: `to`, `params`, `queryParams`, `options`.
+* **`CommandModal`** — Bir onay modalı açar. Kullanıcı onaylarsa `execute` geri çağrısını yürütür. Props: `title`, `subtitle`, `execute`, `confirmButtonText`, `confirmButtonAccent`.
+* **`CommandOpenSidePanelPage`** — Belirli bir yan panel sayfasını açar. Props: `page`, `pageTitle`, `pageIcon`.
+
+`Command` kullanarak komut menüsünden bir eylem çalıştıran headless bir ön bileşenin tam örneği:
+
+```tsx src/front-components/run-action.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { Command } from 'twenty-sdk/command';
+import { CoreApiClient } from 'twenty-sdk/clients';
+
+const RunAction = () => {
+  const execute = async () => {
+    const client = new CoreApiClient();
+
+    await client.mutation({
+      createTask: {
+        __args: { data: { title: 'Created by my app' } },
+        id: true,
+      },
+    });
+  };
+
+  return <Command execute={execute} />;
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'e5f6a7b8-c9d0-1234-efab-345678901234',
+  name: 'run-action',
+  description: 'Creates a task from the command menu',
+  component: RunAction,
+  isHeadless: true,
+  command: {
+    universalIdentifier: 'f6a7b8c9-d0e1-2345-fabc-456789012345',
+    label: 'Run my action',
+    icon: 'IconPlayerPlay',
+  },
+});
+```
+
+Ve yürütmeden önce onay istemek için `CommandModal` kullanan bir örnek:
+
+```tsx src/front-components/delete-draft.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { CommandModal } from 'twenty-sdk/command';
+
+const DeleteDraft = () => {
+  const execute = async () => {
+    // perform the deletion
+  };
+
+  return (
+    <CommandModal
+      title="Delete draft?"
+      subtitle="This action cannot be undone."
+      execute={execute}
+      confirmButtonText="Delete"
+      confirmButtonAccent="danger"
+    />
+  );
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'a7b8c9d0-e1f2-3456-abcd-567890123456',
+  name: 'delete-draft',
+  description: 'Deletes a draft with confirmation',
+  component: DeleteDraft,
+  isHeadless: true,
+  command: {
+    universalIdentifier: 'b8c9d0e1-f2a3-4567-bcde-678901234567',
+    label: 'Delete draft',
+    icon: 'IconTrash',
+  },
+});
+```
+
 #### Çalışma zamanı bağlamına erişme
 
 Bileşeninizin içinde, geçerli kullanıcıya, kayda ve bileşen örneğine erişmek için SDK hook'larını kullanın:
 
 ```tsx src/front-components/record-info.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
 import {
-  defineFrontComponent,
   useUserId,
   useRecordId,
   useFrontComponentId,
-} from 'twenty-sdk';
+} from 'twenty-sdk/front-component';
 
 const RecordInfo = () => {
   const userId = useUserId();
@@ -859,6 +1080,51 @@ Kullanılabilir hook'lar:
 | `unmountFrontComponent()`                       | Bileşeni kaldır (unmount)          |
 | `updateProgress(progress)`                      | Bir ilerleme göstergesini güncelle |
 
+Bir eylem tamamlandıktan sonra bir snackbar göstermek ve yan paneli kapatmak için host API'sini kullanan bir örnek:
+
+```tsx src/front-components/archive-record.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { useRecordId } from 'twenty-sdk/front-component';
+import { enqueueSnackbar, closeSidePanel } from 'twenty-sdk/front-component';
+import { CoreApiClient } from 'twenty-sdk/clients';
+
+const ArchiveRecord = () => {
+  const recordId = useRecordId();
+
+  const handleArchive = async () => {
+    const client = new CoreApiClient();
+
+    await client.mutation({
+      updateTask: {
+        __args: { id: recordId, data: { status: 'ARCHIVED' } },
+        id: true,
+      },
+    });
+
+    await enqueueSnackbar({
+      message: 'Record archived',
+      variant: 'success',
+    });
+
+    await closeSidePanel();
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <p>Archive this record?</p>
+      <button onClick={handleArchive}>Archive</button>
+    </div>
+  );
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'c9d0e1f2-a3b4-5678-cdef-789012345678',
+  name: 'archive-record',
+  description: 'Archives the current record',
+  component: ArchiveRecord,
+});
+```
+
 #### Komut seçenekleri
 
 `defineFrontComponent` içine bir `command` alanı eklemek, bileşeni komut menüsüne (Cmd+K) kaydeder. `isPinned` `true` ise, sayfanın sağ üst köşesinde bir hızlı işlem düğmesi olarak da görünür.
@@ -879,14 +1145,14 @@ Kullanılabilir hook'lar:
 `conditionalAvailabilityExpression` alanı, geçerli sayfa bağlamına göre bir komutun ne zaman görünür olacağını kontrol etmenizi sağlar. İfadeler oluşturmak için `twenty-sdk`'den türlendirilmiş değişkenleri ve operatörleri içe aktarın:
 
 ```tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
 import {
-  defineFrontComponent,
   pageType,
   numberOfSelectedRecords,
   objectPermissions,
   everyEquals,
   isDefined,
-} from 'twenty-sdk';
+} from 'twenty-sdk/front-component';
 
 export default defineFrontComponent({
   universalIdentifier: '...',
@@ -946,7 +1212,7 @@ export default defineFrontComponent({
 Ön uç bileşenleri, `getPublicAssetUrl` kullanarak uygulamanın `public/` dizinindeki dosyalara erişebilir:
 
 ```tsx
-import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk';
+import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk/define';
 
 const Logo = () => <img src={getPublicAssetUrl('logo.png')} alt="Logo" />;
 
@@ -971,7 +1237,7 @@ Ayrıntılar için [genel varlıklar bölümüne](#accessing-public-assets-with-
 * **React ile uyumlu herhangi bir CSS-in-JS kitaplığı**
 
 ```tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 import { Button, Tag, Status } from 'twenty-sdk/ui';
 
 const StyledWidget = () => {
@@ -998,7 +1264,7 @@ export default defineFrontComponent({
 Yetenekler, yapay zekâ ajanlarının çalışma alanınızda kullanabileceği yeniden kullanılabilir yönergeleri ve kabiliyetleri tanımlar. Yerleşik doğrulamayla yetenekleri tanımlamak için `defineSkill()` kullanın:
 
 ```ts src/skills/example-skill.ts
-import { defineSkill } from 'twenty-sdk';
+import { defineSkill } from 'twenty-sdk/define';
 
 export default defineSkill({
   universalIdentifier: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -1027,7 +1293,7 @@ export default defineSkill({
 Ajanlar, çalışma alanınız içinde bulunan yapay zekâ asistanlarıdır. Özel bir sistem istemiyle ajanlar oluşturmak için `defineAgent()` kullanın:
 
 ```ts src/agents/example-agent.ts
-import { defineAgent } from 'twenty-sdk';
+import { defineAgent } from 'twenty-sdk/define';
 
 export default defineAgent({
   universalIdentifier: 'b3c4d5e6-f7a8-9012-bcde-f34567890123',
@@ -1053,7 +1319,7 @@ export default defineAgent({
 Görünümler, bir nesnenin kayıtlarının nasıl görüntüleneceğine ilişkin kaydedilmiş yapılandırmalardır — hangi alanların görünür olacağını, sıralarını ve uygulanan filtreleri veya grupları içerir. Uygulamanızla önceden yapılandırılmış görünümler sunmak için `defineView()` kullanın:
 
 ```ts src/views/example-view.ts
-import { defineView, ViewKey } from 'twenty-sdk';
+import { defineView, ViewKey } from 'twenty-sdk/define';
 import { EXAMPLE_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 import { NAME_FIELD_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 
@@ -1089,7 +1355,7 @@ export default defineView({
 Gezinme menüsü öğeleri, çalışma alanı kenar çubuğuna özel girişler ekler. Görünümlere, harici URL'lere veya nesnelere bağlanmak için `defineNavigationMenuItem()` kullanın:
 
 ```ts src/navigation-menu-items/example-navigation-menu-item.ts
-import { defineNavigationMenuItem, NavigationMenuItemType } from 'twenty-sdk';
+import { defineNavigationMenuItem, NavigationMenuItemType } from 'twenty-sdk/define';
 import { EXAMPLE_VIEW_UNIVERSAL_IDENTIFIER } from '../views/example-view';
 
 export default defineNavigationMenuItem({
@@ -1115,7 +1381,7 @@ export default defineNavigationMenuItem({
 Sayfa düzenleri, bir kayıt ayrıntı sayfasının nasıl görüneceğini özelleştirmenizi sağlar — hangi sekmelerin görüneceği, her sekmenin içinde hangi widget'ların olacağı ve bunların nasıl düzenleneceği. Uygulamanızla özel düzenler sunmak için `definePageLayout()` kullanın:
 
 ```ts src/page-layouts/example-record-page-layout.ts
-import { definePageLayout, PageLayoutTabLayoutMode } from 'twenty-sdk';
+import { definePageLayout, PageLayoutTabLayoutMode } from 'twenty-sdk/define';
 import { EXAMPLE_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 import { HELLO_WORLD_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from '../front-components/hello-world';
 
@@ -1178,7 +1444,7 @@ Uygulamanızın kökündeki `public/` klasörü, statik dosyaları barındırır
 **Bir mantık işlevinde:**
 
 ```ts src/logic-functions/send-invoice.ts
-import { defineLogicFunction, getPublicAssetUrl } from 'twenty-sdk';
+import { defineLogicFunction, getPublicAssetUrl } from 'twenty-sdk/define';
 
 const handler = async (): Promise<any> => {
   const logoUrl = getPublicAssetUrl('logo.png');
@@ -1203,7 +1469,7 @@ export default defineLogicFunction({
 **Bir ön uç bileşeninde:**
 
 ```tsx src/front-components/company-card.tsx
-import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk';
+import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk/define';
 
 export default defineFrontComponent(() => {
   const logoUrl = getPublicAssetUrl('logo.png');
@@ -1227,7 +1493,7 @@ yarn add axios
 Ardından kodunuza içe aktarın:
 
 ```ts src/logic-functions/fetch-data.ts
-import { defineLogicFunction } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
 import axios from 'axios';
 
 const handler = async (): Promise<any> => {
@@ -1248,7 +1514,7 @@ export default defineLogicFunction({
 Aynısı ön uç bileşenleri için de geçerlidir:
 
 ```tsx src/front-components/chart.tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 import { format } from 'date-fns';
 
 const DateWidget = () => {
@@ -1264,7 +1530,7 @@ export default defineFrontComponent({
 
 ### Paketleme nasıl çalışır
 
-Derleme adımı (`yarn twenty dev` veya `yarn twenty build`), her mantık işlevi ve her ön uç bileşeni için tek bir bağımsız dosya üretmek üzere esbuild kullanır. Tüm içe aktarılan paketler pakete satır içi eklenir.
+Derleme adımı, her mantık işlevi ve her ön uç bileşeni için tek bir bağımsız dosya üretmek üzere esbuild kullanır. Tüm içe aktarılan paketler pakete satır içi eklenir.
 
 **Mantık işlevleri**, Node.js ortamında çalışır. Node yerleşik modülleri (`fs`, `path`, `crypto`, `http` vb.) kullanılabilir ve kurulmaları gerekmez.
 
@@ -1292,44 +1558,44 @@ yarn twenty add frontComponent
 
 ### Kullanılabilir varlık türleri
 
-| Varlık türü          | Komut                                | Oluşturulan dosya                     |
-| -------------------- | ------------------------------------ | ------------------------------------- |
-| Nesne                | `yarn twenty add object`             | `src/objects/<name>.ts`               |
-| Alan                 | `yarn twenty add field`              | `src/fields/<name>.ts`                |
-| Mantık işlevi        | `yarn twenty add logicFunction`      | `src/logic-functions/<name>.ts`       |
-| Ön uç bileşeni       | `yarn twenty add frontComponent`     | `src/front-components/<name>.tsx`     |
-| Rol                  | `yarn twenty add role`               | `src/roles/<name>.ts`                 |
-| Beceri               | `yarn twenty add skill`              | `src/skills/<name>.ts`                |
-| Temsilci             | `yarn twenty add agent`              | `src/agents/<name>.ts`                |
-| Görünüm              | `yarn twenty add view`               | `src/views/<name>.ts`                 |
-| Navigation menu item | `yarn twenty add navigationMenuItem` | `src/navigation-menu-items/<name>.ts` |
-| Page layout          | `yarn twenty add pageLayout`         | `src/page-layouts/<name>.ts`          |
+| Varlık türü          | Komut                                | Oluşturulan dosya                                       |
+| -------------------- | ------------------------------------ | ------------------------------------------------------- |
+| Nesne                | `yarn twenty add object`             | `src/objects/\<name>.ts`               |
+| Alan                 | `yarn twenty add field`              | `src/fields/\<name>.ts`                |
+| Mantık işlevi        | `yarn twenty add logicFunction`      | `src/logic-functions/\<name>.ts`       |
+| Ön uç bileşeni       | `yarn twenty add frontComponent`     | `src/front-components/\<name>.tsx`     |
+| Rol                  | `yarn twenty add role`               | `src/roles/\<name>.ts`                 |
+| Beceri               | `yarn twenty add skill`              | `src/skills/\<name>.ts`                |
+| Temsilci             | `yarn twenty add agent`              | `src/agents/\<name>.ts`                |
+| Görünüm              | `yarn twenty add view`               | `src/views/\<name>.ts`                 |
+| Gezinme menüsü öğesi | `yarn twenty add navigationMenuItem` | `src/navigation-menu-items/\<name>.ts` |
+| Sayfa düzeni         | `yarn twenty add pageLayout`         | `src/page-layouts/\<name>.ts`          |
 
-### What the scaffolder generates
+### İskelet oluşturucunun ürettikleri
 
-Each entity type has its own template. For example, `yarn twenty add object` asks for:
+Her varlık türünün kendi şablonu vardır. Örneğin, `yarn twenty add object` şunları sorar:
 
-1. **Name (singular)** — e.g., `invoice`
-2. **Name (plural)** — e.g., `invoices`
-3. **Label (singular)** — auto-populated from the name (e.g., `Invoice`)
-4. **Label (plural)** — auto-populated (e.g., `Invoices`)
-5. **Create a view and navigation item?** — if you answer yes, the scaffolder also generates a matching view and sidebar link for the new object.
+1. **Ad (tekil)** — ör. `invoice`
+2. **Ad (çoğul)** — ör. `invoices`
+3. **Etiket (tekil)** — adından otomatik doldurulur (ör. `Invoice`)
+4. **Etiket (çoğul)** — otomatik doldurulur (ör. `Invoices`)
+5. **Bir görünüm ve gezinme öğesi oluşturulsun mu?** — evet derseniz, iskelet oluşturucu yeni nesne için eşleşen bir görünüm ve kenar çubuğu bağlantısı da üretir.
 
-Other entity types have simpler prompts — most only ask for a name.
+Diğer varlık türlerinin istemleri daha basittir — çoğu yalnızca bir ad sorar.
 
-The `field` entity type is more detailed: it asks for the field name, label, type (from a list of all available field types like `TEXT`, `NUMBER`, `SELECT`, `RELATION`, etc.), and the target object's `universalIdentifier`.
+`field` varlık türü daha ayrıntılıdır: alan adını, etiketi, türü (`TEXT`, `NUMBER`, `SELECT`, `RELATION` vb. gibi mevcut tüm alan türlerinin listesinden) ve hedef nesnenin `universalIdentifier` değerini sorar.
 
-### Custom output path
+### Özel çıktı yolu
 
-Use the `--path` flag to place the generated file in a custom location:
+`--path` bayrağını kullanarak oluşturulan dosyayı özel bir konuma yerleştirin:
 
 ```bash filename="Terminal"
 yarn twenty add logicFunction --path src/custom-folder
 ```
 
-## Typed API clients (twenty-client-sdk)
+## Tipli API istemcileri (twenty-client-sdk)
 
-The `twenty-client-sdk` package provides two typed GraphQL clients for interacting with the Twenty API from your logic functions and front components.
+`twenty-client-sdk` paketi, mantık fonksiyonlarınızdan ve ön uç bileşenlerinizden Twenty API ile etkileşim kurmak için tip tanımlı iki GraphQL istemcisi sağlar.
 
 | İstemci             | İçe Aktar                    | Uç nokta                                                      | Oluşturuldu mu?                         |
 | ------------------- | ---------------------------- | ------------------------------------------------------------- | --------------------------------------- |
@@ -1337,9 +1603,9 @@ The `twenty-client-sdk` package provides two typed GraphQL clients for interacti
 | `MetadataApiClient` | `twenty-client-sdk/metadata` | `/metadata` — çalışma alanı yapılandırması, dosya yüklemeleri | Hayır, önceden hazırlanmış olarak gelir |
 
 <AccordionGroup>
-<Accordion title="CoreApiClient" description="Query and mutate workspace data (records, objects)">
+<Accordion title="CoreApiClient" description="Çalışma alanı verilerini sorgulayın ve değiştirin (kayıtlar, nesneler)">
 
-`CoreApiClient`, çalışma alanı verilerini sorgulamak ve değiştirmek için ana istemcidir. It is **generated from your workspace schema** during `yarn twenty dev` or `yarn twenty build`, so it is fully typed to match your objects and fields.
+`CoreApiClient`, çalışma alanı verilerini sorgulamak ve değiştirmek için ana istemcidir. `yarn twenty dev` veya `yarn twenty build` sırasında **çalışma alanı şemanızdan oluşturulur**, bu nedenle nesnelerinize ve alanlarınıza uyacak şekilde tamamen tiplenmiştir.
 
 ```ts
 import { CoreApiClient } from 'twenty-client-sdk/core';
@@ -1379,12 +1645,12 @@ const { createCompany } = await client.mutation({
 İstemci bir seçim kümesi sözdizimi kullanır: Bir alanı dahil etmek için `true` geçin, bağımsız değişkenler için `__args` kullanın ve ilişkiler için nesneleri iç içe yerleştirin. Çalışma alanı şemanıza göre tam otomatik tamamlama ve tip denetimi elde edersiniz.
 
 <Note>
-**CoreApiClient is generated at dev/build time.** If you use it without running `yarn twenty dev` or `yarn twenty build` first, it throws an error. The generation happens automatically — the CLI introspects your workspace's GraphQL schema and generates a typed client using `@genql/cli`.
+**CoreApiClient geliştirme/derleme zamanında oluşturulur.** Bunu önce `yarn twenty dev` veya `yarn twenty build` çalıştırmadan kullanırsanız, bir hata verir. Oluşturma otomatik olarak gerçekleşir — CLI, çalışma alanınızın GraphQL şemasını inceler ve `@genql/cli` kullanarak tiplenmiş bir istemci üretir.
 </Note>
 
 #### Tür açıklamaları için CoreSchema'yı kullanma
 
-`CoreSchema` provides TypeScript types matching your workspace objects — useful for typing component state or function parameters:
+`CoreSchema`, çalışma alanı nesnelerinize uyan TypeScript türleri sağlar — bileşen durumunu veya işlev parametrelerini tiplemek için kullanışlıdır:
 
 ```ts
 import { CoreApiClient, CoreSchema } from 'twenty-client-sdk/core';
@@ -1406,7 +1672,7 @@ setCompany(result.company);
 ```
 
 </Accordion>
-<Accordion title="MetadataApiClient" description="Workspace config, applications, and file uploads">
+<Accordion title="MetadataApiClient" description="Çalışma alanı yapılandırması, uygulamalar ve dosya yüklemeleri">
 
 `MetadataApiClient`, SDK ile birlikte önceden hazırlanmış olarak gelir (oluşturma gerektirmez). Çalışma alanı yapılandırması, uygulamalar ve dosya yüklemeleri için `/metadata` uç noktasını sorgular.
 
@@ -1458,12 +1724,12 @@ console.log(uploadedFile);
 // { id: '...', path: '...', size: 12345, createdAt: '...', url: 'https://...' }
 ```
 
-| Parametre                          | Tür      | Açıklama                                                      |
-| ---------------------------------- | -------- | ------------------------------------------------------------- |
-| `fileBuffer`                       | `Buffer` | Dosyanın ham içeriği                                          |
-| `filename`                         | `string` | Dosyanın adı (depolama ve görüntüleme için kullanılır)        |
-| `contentType`                      | `string` | MIME type (defaults to `application/octet-stream` if omitted) |
-| `fieldMetadataUniversalIdentifier` | `string` | Nesnenizdeki dosya türü alanının `universalIdentifier` değeri |
+| Parametre                          | Tür      | Açıklama                                                                          |
+| ---------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| `fileBuffer`                       | `Buffer` | Dosyanın ham içeriği                                                              |
+| `filename`                         | `string` | Dosyanın adı (depolama ve görüntüleme için kullanılır)                            |
+| `contentType`                      | `string` | MIME türü (belirtilmezse varsayılan olarak `application/octet-stream` kullanılır) |
+| `fieldMetadataUniversalIdentifier` | `string` | Nesnenizdeki dosya türü alanının `universalIdentifier` değeri                     |
 
 Önemli noktalar:
 * Alan için `universalIdentifier` kullanır (çalışma alanına özgü kimliği değil), böylece yükleme kodunuz uygulamanızın yüklü olduğu herhangi bir çalışma alanında çalışır.
@@ -1476,24 +1742,24 @@ console.log(uploadedFile);
   Kodunuz Twenty üzerinde çalıştığında (mantık işlevleri veya ön uç bileşenleri), platform kimlik bilgilerini ortam değişkenleri olarak enjekte eder:
 
   * `TWENTY_API_URL` — Twenty API'nin temel URL'si
-  * `TWENTY_APP_ACCESS_TOKEN` — Short-lived key scoped to your application's default function role
+  * `TWENTY_APP_ACCESS_TOKEN` — Uygulamanızın varsayılan fonksiyon rolü kapsamında kısa ömürlü anahtar
 
   Bunları istemcilere iletmeniz gerekmez — otomatik olarak `process.env`'den okurlar. API anahtarının izinleri, `application-config.ts` içinde `defaultRoleUniversalIdentifier` ile referans verilen role göre belirlenir.
 </Note>
 
-## Testing your app
+## Uygulamanızı test etme
 
-The SDK provides programmatic APIs that let you build, deploy, install, and uninstall your app from test code. Combined with [Vitest](https://vitest.dev/) and the typed API clients, you can write integration tests that verify your app works end-to-end against a real Twenty server.
+SDK, test kodundan uygulamanızı derlemenize, dağıtmanıza, yüklemenize ve kaldırmanıza olanak tanıyan programatik API'ler sağlar. Tiplenmiş API istemcileriyle birlikte [Vitest](https://vitest.dev/) kullanarak, uygulamanızın gerçek bir Twenty sunucusunda uçtan uca çalıştığını doğrulayan entegrasyon testleri yazabilirsiniz.
 
 ### Kurulum
 
-The scaffolded app already includes Vitest. If you set it up manually, install the dependencies:
+İskelet aracıyla oluşturulan uygulama zaten Vitest'i içerir. Manuel kurulum yaparsanız, bağımlılıkları yükleyin:
 
 ```bash filename="Terminal"
 yarn add -D vitest vite-tsconfig-paths
 ```
 
-Create a `vitest.config.ts` at the root of your app:
+Uygulamanızın kök dizininde bir `vitest.config.ts` oluşturun:
 
 ```ts vitest.config.ts
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -1519,7 +1785,7 @@ export default defineConfig({
 });
 ```
 
-Create a setup file that verifies the server is reachable before tests run:
+Testler çalışmadan önce sunucuya erişilebildiğini doğrulayan bir kurulum dosyası oluşturun:
 
 ```ts src/__tests__/setup-test.ts
 import * as fs from 'fs';
@@ -1559,22 +1825,22 @@ beforeAll(async () => {
 });
 ```
 
-### Programmatic SDK APIs
+### Programatik SDK API'leri
 
-The `twenty-sdk/cli` subpath exports functions you can call directly from test code:
+`twenty-sdk/cli` alt yolu, test kodundan doğrudan çağırabileceğiniz fonksiyonları dışa aktarır:
 
-| Fonksiyon      | Açıklama                                    |
-| -------------- | ------------------------------------------- |
-| `appBuild`     | Build the app and optionally pack a tarball |
-| `appDeploy`    | Upload a tarball to the server              |
-| `appInstall`   | Install the app on the active workspace     |
-| `appUninstall` | Uninstall the app from the active workspace |
+| Fonksiyon      | Açıklama                                                          |
+| -------------- | ----------------------------------------------------------------- |
+| `appBuild`     | Uygulamayı derleyin ve isteğe bağlı olarak bir tarball paketleyin |
+| `appDeploy`    | Bir tarball'ı sunucuya yükleyin                                   |
+| `appInstall`   | Uygulamayı etkin çalışma alanına yükleyin                         |
+| `appUninstall` | Uygulamayı etkin çalışma alanından kaldırın                       |
 
-Each function returns a result object with `success: boolean` and either `data` or `error`.
+Her fonksiyon, `success: boolean` ile birlikte `data` veya `error` içeren bir sonuç nesnesi döndürür.
 
-### Writing an integration test
+### Bir entegrasyon testi yazma
 
-Here is a full example that builds, deploys, and installs the app, then verifies it appears in the workspace:
+İşte uygulamayı derleyen, dağıtan ve yükleyen; ardından çalışma alanında göründüğünü doğrulayan tam bir örnek:
 
 ```ts src/__tests__/app-install.integration-test.ts
 import { APPLICATION_UNIVERSAL_IDENTIFIER } from 'src/application-config';
@@ -1637,37 +1903,37 @@ describe('App installation', () => {
 });
 ```
 
-### Running tests
+### Testleri çalıştırma
 
-Make sure your local Twenty server is running, then:
+Yerel Twenty sunucunuzun çalıştığından emin olun, ardından:
 
 ```bash filename="Terminal"
 yarn test
 ```
 
-Or in watch mode during development:
+Veya geliştirme sırasında izleme modunda:
 
 ```bash filename="Terminal"
 yarn test:watch
 ```
 
-### Type checking
+### Tip denetimi
 
-You can also run type checking on your app without running tests:
+Ayrıca testleri çalıştırmadan uygulamanızda tip denetimi çalıştırabilirsiniz:
 
 ```bash filename="Terminal"
 yarn twenty typecheck
 ```
 
-This runs `tsc --noEmit` and reports any type errors.
+Bu, `tsc --noEmit` komutunu çalıştırır ve tüm tip hatalarını raporlar.
 
 ## CLI başvurusu
 
-Beyond `dev`, `build`, `add`, and `typecheck`, the CLI provides commands for executing functions, viewing logs, and managing app installations.
+`dev`, `build`, `add` ve `typecheck` dışında CLI, fonksiyonları çalıştırma, günlükleri görüntüleme ve uygulama kurulumlarını yönetme komutları sağlar.
 
-### Executing functions (`yarn twenty exec`)
+### Fonksiyonları çalıştırma (`yarn twenty exec`)
 
-Run a logic function manually without triggering it via HTTP, cron, or database event:
+Bir mantık fonksiyonunu HTTP, cron veya veritabanı olayıyla tetiklemeden manuel olarak çalıştırın:
 
 ```bash filename="Terminal"
 # Execute by function name
@@ -1679,14 +1945,13 @@ yarn twenty exec -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
 # Pass a JSON payload
 yarn twenty exec -n create-new-post-card -p '{"name": "Hello"}'
 
-# Execute pre-install or post-install functions
-yarn twenty exec --preInstall
+# Execute the post-install function
 yarn twenty exec --postInstall
 ```
 
-### Viewing function logs (`yarn twenty logs`)
+### Fonksiyon günlüklerini görüntüleme (`yarn twenty logs`)
 
-Stream execution logs for your app's logic functions:
+Uygulamanızın mantık fonksiyonlarının yürütme günlüklerini akış olarak alın:
 
 ```bash filename="Terminal"
 # Stream all function logs
@@ -1700,12 +1965,12 @@ yarn twenty logs -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
 ```
 
 <Note>
-This is different from `yarn twenty server logs`, which shows the Docker container logs. `yarn twenty logs` shows your app's function execution logs from the Twenty server.
+Bu, Docker konteyner günlüklerini gösteren `yarn twenty server logs` komutundan farklıdır. `yarn twenty logs`, uygulamanızın fonksiyon yürütme günlüklerini Twenty sunucusundan gösterir.
 </Note>
 
-### Uninstalling an app (`yarn twenty uninstall`)
+### Bir uygulamayı kaldırma (`yarn twenty uninstall`)
 
-Remove your app from the active workspace:
+Uygulamanızı etkin çalışma alanından kaldırın:
 
 ```bash filename="Terminal"
 yarn twenty uninstall
@@ -1713,3 +1978,86 @@ yarn twenty uninstall
 # Skip the confirmation prompt
 yarn twenty uninstall --yes
 ```
+
+## Uzakları yönetme
+
+Bir **uzak**, uygulamanızın bağlandığı Twenty sunucusudur. Kurulum sırasında iskelet oluşturucu sizin için otomatik olarak bir tane oluşturur. Dilediğiniz zaman daha fazla uzak ekleyebilir veya aralarında geçiş yapabilirsiniz.
+
+```bash filename="Terminal"
+# Add a new remote (opens a browser for OAuth login)
+yarn twenty remote add
+
+# Connect to a local Twenty server (auto-detects port 2020 or 3000)
+yarn twenty remote add --local
+
+# Add a remote non-interactively (useful for CI)
+yarn twenty remote add --api-url https://your-twenty-server.com --api-key $TWENTY_API_KEY --as my-remote
+
+# List all configured remotes
+yarn twenty remote list
+
+# Switch the active remote
+yarn twenty remote switch <name>
+```
+
+Kimlik bilgileriniz `~/.twenty/config.json` içinde saklanır.
+
+## GitHub Actions ile CI
+
+İskelet oluşturucu, `.github/workflows/ci.yml` konumunda kullanıma hazır bir GitHub Actions iş akışı üretir. Entegrasyon testlerinizi `main` dalına yapılan her itmede ve çekme isteklerinde otomatik olarak çalıştırır.
+
+İş akışı:
+
+1. Kodunuzu çalışma alanına alır
+2. `twentyhq/twenty/.github/actions/spawn-twenty-docker-image` eylemini kullanarak geçici bir Twenty sunucusu başlatır
+3. `yarn install --immutable` ile bağımlılıkları kurar
+4. Eylem çıktılarından enjekte edilen `TWENTY_API_URL` ve `TWENTY_API_KEY` ile `yarn test` çalıştırır
+
+```yaml .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+env:
+  TWENTY_VERSION: latest
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Spawn Twenty instance
+        id: twenty
+        uses: twentyhq/twenty/.github/actions/spawn-twenty-docker-image@main
+        with:
+          twenty-version: ${{ env.TWENTY_VERSION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run integration tests
+        run: yarn test
+        env:
+          TWENTY_API_URL: ${{ steps.twenty.outputs.server-url }}
+          TWENTY_API_KEY: ${{ steps.twenty.outputs.access-token }}
+```
+
+Herhangi bir gizli değişken yapılandırmanız gerekmez — `spawn-twenty-docker-image` eylemi, koşucu içinde doğrudan geçici bir Twenty sunucusu başlatır ve bağlantı ayrıntılarını çıktı olarak verir. `GITHUB_TOKEN` gizli değişkeni GitHub tarafından otomatik olarak sağlanır.
+
+`latest` yerine belirli bir Twenty sürümünü sabitlemek için iş akışının başındaki `TWENTY_VERSION` ortam değişkenini değiştirin.

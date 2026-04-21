@@ -28,7 +28,7 @@ import {
   defineRole,
   PermissionFlag,
   STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS,
-} from 'twenty-sdk';
+} from 'twenty-sdk/define';
 
 export default defineRole({
   universalIdentifier: '2c80f640-2083-4803-bb49-003e38279de6',
@@ -77,11 +77,11 @@ export default defineRole({
 * **(Необязательно) Предустановочные / постустановочные функции**: логические функции, которые запускаются до или после установки.
 
 ```ts src/application-config.ts
-import { defineApplication } from 'twenty-sdk';
+import { defineApplication } from 'twenty-sdk/define';
 import { DEFAULT_ROLE_UNIVERSAL_IDENTIFIER } from 'src/roles/default-role';
 
 export default defineApplication({
-  universalIdentifier: '4ec0391d-18d5-411c-b2f3-266ddc1c3ef7',
+  universalIdentifier: '39783023-bcac-41e3-b0d2-ff1944d8465d',
   displayName: 'My Twenty App',
   description: 'My first Twenty app',
   icon: 'IconWorld',
@@ -132,7 +132,7 @@ export default defineApplication({
 Когда вы генерируете новое приложение, CLI создаёт файл роли по умолчанию:
 
 ```ts src/roles/default-role.ts
-import { defineRole, PermissionFlag } from 'twenty-sdk';
+import { defineRole, PermissionFlag } from 'twenty-sdk/define';
 
 export const DEFAULT_ROLE_UNIVERSAL_IDENTIFIER =
   'b648f87b-1d26-4961-b974-0908fd991061';
@@ -172,7 +172,7 @@ export default defineRole({
 Пользовательские объекты описывают как схему, так и поведение записей в вашем рабочем пространстве. Используйте `defineObject()` для определения объектов со встроенной валидацией:
 
 ```ts postCard.object.ts
-import { defineObject, FieldType } from 'twenty-sdk';
+import { defineObject, FieldType } from 'twenty-sdk/define';
 
 enum PostCardStatus {
   DRAFT = 'DRAFT',
@@ -261,7 +261,7 @@ export default defineObject({
 Используйте `defineField()` для добавления полей к объектам, которые вам не принадлежат — например, к стандартным объектам Twenty (Person, Company и т. д.). или к объектам из других приложений. В отличие от встроенных полей в `defineObject()`, отдельные поля требуют `objectUniversalIdentifier`, чтобы указать, какой объект они расширяют:
 
 ```ts src/fields/company-loyalty-tier.field.ts
-import { defineField, FieldType } from 'twenty-sdk';
+import { defineField, FieldType } from 'twenty-sdk/define';
 
 export default defineField({
   universalIdentifier: 'f2a1b3c4-d5e6-7890-abcd-ef1234567890',
@@ -311,7 +311,7 @@ export default defineField({
 **Шаг 1: Определите сторону ONE_TO_MANY на PostCard** (сторона "one"):
 
 ```ts src/fields/post-card-recipients-on-post-card.field.ts
-import { defineField, FieldType, RelationType } from 'twenty-sdk';
+import { defineField, FieldType, RelationType } from 'twenty-sdk/define';
 import { POST_CARD_UNIVERSAL_IDENTIFIER } from '../objects/post-card.object';
 import { POST_CARD_RECIPIENT_UNIVERSAL_IDENTIFIER } from '../objects/post-card-recipient.object';
 
@@ -338,7 +338,7 @@ export default defineField({
 **Шаг 2: Определите сторону MANY_TO_ONE на PostCardRecipient** (сторона "many" — содержит внешний ключ):
 
 ```ts src/fields/post-card-on-post-card-recipient.field.ts
-import { defineField, FieldType, RelationType, OnDeleteAction } from 'twenty-sdk';
+import { defineField, FieldType, RelationType, OnDeleteAction } from 'twenty-sdk/define';
 import { POST_CARD_UNIVERSAL_IDENTIFIER } from '../objects/post-card.object';
 import { POST_CARD_RECIPIENT_UNIVERSAL_IDENTIFIER } from '../objects/post-card-recipient.object';
 
@@ -379,7 +379,7 @@ import {
   RelationType,
   OnDeleteAction,
   STANDARD_OBJECT_UNIVERSAL_IDENTIFIERS,
-} from 'twenty-sdk';
+} from 'twenty-sdk/define';
 import { SELF_HOSTING_USER_UNIVERSAL_IDENTIFIER } from '../objects/self-hosting-user.object';
 
 export const PERSON_FIELD_ID = 'c3333333-3333-3333-3333-333333333333';
@@ -448,8 +448,8 @@ export default defineObject({
 Каждый файл функции использует `defineLogicFunction()` для экспорта конфигурации с обработчиком и необязательными триггерами.
 
 ```ts src/logic-functions/createPostCard.logic-function.ts
-import { defineLogicFunction } from 'twenty-sdk';
-import type { DatabaseEventPayload, ObjectRecordCreateEvent, CronPayload, RoutePayload } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
+import type { DatabaseEventPayload, ObjectRecordCreateEvent, CronPayload, RoutePayload } from 'twenty-sdk/define';
 import { CoreApiClient, type Person } from 'twenty-client-sdk/core';
 
 const handler = async (params: RoutePayload) => {
@@ -476,7 +476,7 @@ export default defineLogicFunction({
   httpRouteTriggerSettings: {
     path: '/post-card/create',
     httpMethod: 'GET',
-    isAuthRequired: false,
+    isAuthRequired: true,
   },
   /*databaseEventTriggerSettings: {
     eventName: 'people.created',
@@ -518,7 +518,7 @@ yarn twenty logs
 Импортируйте тип `RoutePayload` из `twenty-sdk`:
 
 ```ts
-import { defineLogicFunction, type RoutePayload } from 'twenty-sdk';
+import { defineLogicFunction, type RoutePayload } from 'twenty-sdk/define';
 
 const handler = async (event: RoutePayload) => {
   const { headers, queryStringParameters, pathParameters, body } = event;
@@ -530,15 +530,15 @@ const handler = async (event: RoutePayload) => {
 
 Тип `RoutePayload` имеет следующую структуру:
 
-  | Свойство                     | Тип                                   | Описание                                                            | Пример                                                                     |
-  | ---------------------------- | ------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-  | `headers`                    | `Record<string, string \| undefined>` | HTTP-заголовки (только перечисленные в `forwardedRequestHeaders`)   | см. раздел ниже                                                            |
-  | `queryStringParameters`      | `Record<string, string \| undefined>` | Параметры строки запроса (несколько значений объединяются запятыми) | `/users?ids=1&ids=2&ids=3&name=Alice` -> `{ ids: '1,2,3', name: 'Alice' }` |
-  | `pathParameters`             | `Record<string, string \| undefined>` | Параметры пути, извлечённые из шаблона маршрута                     | `/users/:id`, `/users/123` -> `{ id: '123' }`                              |
-  | `body`                       | `object \| null`                      | Разобранное тело запроса (JSON)                                     | `{ id: 1 }` -> `{ id: 1 }`                                                 |
-  | `isBase64Encoded`            | `логический тип`                      | Является ли тело закодированным в base64                            |                                                                            |
-  | `requestContext.http.method` | `строка`                              | Метод HTTP (GET, POST, PUT, PATCH, DELETE)                          |                                                                            |
-  | `requestContext.http.path`   | `строка`                              | Необработанный путь запроса                                         |                                                                            |
+  | Свойство                     | Тип                                                     | Описание                                                            | Пример                                                                     |
+  | ---------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+  | `headers`                    | `Record\<string, string \| undefined>` | HTTP-заголовки (только перечисленные в `forwardedRequestHeaders`)   | см. раздел ниже                                                            |
+  | `queryStringParameters`      | `Record\<string, string \| undefined>` | Параметры строки запроса (несколько значений объединяются запятыми) | `/users?ids=1&ids=2&ids=3&name=Alice` -> `{ ids: '1,2,3', name: 'Alice' }` |
+  | `pathParameters`             | `Record\<string, string \| undefined>` | Параметры пути, извлечённые из шаблона маршрута                     | `/users/:id`, `/users/123` -> `{ id: '123' }`                              |
+  | `body`                       | `object \| null`                                        | Разобранное тело запроса (JSON)                                     | `{ id: 1 }` -> `{ id: 1 }`                                                 |
+  | `isBase64Encoded`            | `логический тип`                                        | Является ли тело закодированным в base64                            |                                                                            |
+  | `requestContext.http.method` | `строка`                                                | Метод HTTP (GET, POST, PUT, PATCH, DELETE)                          |                                                                            |
+  | `requestContext.http.path`   | `строка`                                                | Необработанный путь запроса                                         |                                                                            |
 
 
 #### forwardedRequestHeaders
@@ -583,7 +583,7 @@ const handler = async (event: RoutePayload) => {
 Чтобы пометить логическую функцию как инструмент, установите `isTool: true`:
 
 ```ts src/logic-functions/enrich-company.logic-function.ts
-import { defineLogicFunction } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
 import { CoreApiClient } from 'twenty-client-sdk/core';
 
 const handler = async (params: { companyName: string; domain?: string }) => {
@@ -644,48 +644,14 @@ export default defineLogicFunction({
 </Note>
 
 </Accordion>
-<Accordion title="definePreInstallLogicFunction" description="Определяет предустановочную логическую функцию (по одной на приложение)">
-
-Предустановочная функция — это логическая функция, которая автоматически выполняется до установки вашего приложения в рабочем пространстве. Это полезно для задач валидации, проверки предварительных условий или подготовки состояния рабочего пространства перед основной установкой.
-
-```ts src/logic-functions/pre-install.ts
-import { definePreInstallLogicFunction, type InstallLogicFunctionPayload } from 'twenty-sdk';
-
-const handler = async (payload: InstallLogicFunctionPayload): Promise<void> => {
-  console.log('Pre install logic function executed successfully!', payload.previousVersion);
-};
-
-export default definePreInstallLogicFunction({
-  universalIdentifier: 'e0604b9e-e946-456b-886d-3f27d9a6b324',
-  name: 'pre-install',
-  description: 'Runs before installation to prepare the application.',
-  timeoutSeconds: 300,
-  handler,
-});
-```
-
-Вы также можете вручную выполнить предустановочную функцию в любое время с помощью CLI:
-
-```bash filename="Terminal"
-yarn twenty exec --preInstall
-```
-
-Основные моменты:
-* Предустановочные функции используют `definePreInstallLogicFunction()` — специализированный вариант, который опускает настройки триггеров (`cronTriggerSettings`, `databaseEventTriggerSettings`, `httpRouteTriggerSettings`, `isTool`).
-* Обработчик получает `InstallLogicFunctionPayload` с `{ previousVersion: string }` — версией приложения, которая была установлена ранее (или пустой строкой для новых установок).
-* Для каждого приложения допускается только одна предустановочная функция. Сборка манифеста завершится ошибкой, если будет обнаружено более одной такой функции.
-* Параметр `universalIdentifier` функции автоматически устанавливается как `preInstallLogicFunctionUniversalIdentifier` в манифесте приложения во время сборки — вам не нужно ссылаться на него в `defineApplication()`.
-* Тайм-аут по умолчанию установлен на 300 секунд (5 минут), чтобы обеспечить выполнение более длительных задач подготовки.
-
-</Accordion>
 <Accordion title="definePostInstallLogicFunction" description="Определяет послеустановочную логическую функцию (по одной на приложение)">
 
-Послеустановочная функция — это функция логики, которая автоматически выполняется после установки вашего приложения в рабочем пространстве. Это полезно для одноразовых задач настройки, таких как инициализация данных по умолчанию, создание начальных записей или настройка параметров рабочего пространства.
+Послеустановочная функция — это функция логики, которая автоматически выполняется после завершения установки вашего приложения в рабочем пространстве. Сервер выполняет её **после** того, как метаданные приложения синхронизированы и клиент SDK сгенерирован, так что рабочее пространство полностью готово к использованию, а новая схема уже применена. Типичные сценарии использования включают предзаполнение данных по умолчанию, создание начальных записей, настройку параметров рабочего пространства или выделение ресурсов в сторонних сервисах.
 
 ```ts src/logic-functions/post-install.ts
-import { definePostInstallLogicFunction, type InstallLogicFunctionPayload } from 'twenty-sdk';
+import { definePostInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
 
-const handler = async (payload: InstallLogicFunctionPayload): Promise<void> => {
+const handler = async (payload: InstallPayload): Promise<void> => {
   console.log('Post install logic function executed successfully!', payload.previousVersion);
 };
 
@@ -694,6 +660,8 @@ export default definePostInstallLogicFunction({
   name: 'post-install',
   description: 'Runs after installation to set up the application.',
   timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: false,
+  shouldRunSynchronously: false,
   handler,
 });
 ```
@@ -706,22 +674,187 @@ yarn twenty exec --postInstall
 
 Основные моменты:
 * Послеустановочные функции используют `definePostInstallLogicFunction()` — специализированный вариант, который опускает настройки триггеров (`cronTriggerSettings`, `databaseEventTriggerSettings`, `httpRouteTriggerSettings`, `isTool`).
-* Обработчик получает `InstallLogicFunctionPayload` с `{ previousVersion: string }` — версией приложения, которая была установлена ранее (или пустой строкой для новых установок).
+* Обработчик получает `InstallPayload` с `{ previousVersion?: string; newVersion: string }` — `newVersion` — это устанавливаемая версия, а `previousVersion` — версия, установленная ранее (или `undefined` при чистой установке). Используйте эти значения, чтобы отличать чистые установки от обновлений и запускать логику миграции, зависящую от версии.
+* **Когда запускается хук**: по умолчанию только при чистой установке. Передайте `shouldRunOnVersionUpgrade: true`, если хотите, чтобы он также выполнялся при обновлении приложения с предыдущей версии. Если флаг опущен, по умолчанию он равен `false`, и при обновлении хук пропускается.
+* **Модель выполнения — по умолчанию асинхронно, синхронный режим по выбору**: флаг `shouldRunSynchronously` определяет, *как* выполняется post-install.
+  * `shouldRunSynchronously: false` *(по умолчанию)* — хук **помещается в очередь сообщений** с `retryLimit: 3` и выполняется асинхронно в воркере. Ответ на установку возвращается сразу после постановки задания в очередь, поэтому медленный или дающий сбой обработчик не блокирует вызывающую сторону. Воркер выполнит до трёх повторных попыток. **Используйте это для длительных задач** — наполнение большими наборами данных, вызовы медленных сторонних API, подготовка внешних ресурсов — всего, что может выйти за разумное окно ответа HTTP.
+  * `shouldRunSynchronously: true` — хук выполняется **непосредственно в процессе установки** (тот же исполнитель, что и для pre-install). Запрос установки блокируется, пока обработчик не завершится, и если он генерирует исключение, вызывающая сторона установки получает `POST_INSTALL_ERROR`. Автоматических повторов нет. **Используйте это для быстрых задач, которые должны завершиться до отправки ответа** — например, выдача ошибки валидации пользователю или быстрая настройка, на которую клиент будет полагаться сразу после возврата вызова установки. Имейте в виду, что к моменту запуска post-install миграция метаданных уже применена, поэтому сбой в синхронном режиме **не** откатывает изменения схемы — он лишь выявляет ошибку.
+* Убедитесь, что ваш обработчик идемпотентен. В асинхронном режиме очередь может выполнить до трёх повторных попыток; в любом режиме хук может запускаться снова при обновлениях, когда `shouldRunOnVersionUpgrade: true`.
+* Переменные окружения `APPLICATION_ID`, `APP_ACCESS_TOKEN` и `API_URL` доступны внутри обработчика (как и в любой другой логической функции), поэтому вы можете вызывать API Twenty с токеном доступа приложения, ограниченным вашим приложением.
 * Для каждого приложения допускается только одна послеустановочная функция. Сборка манифеста завершится ошибкой, если будет обнаружено более одной такой функции.
-* Параметр `universalIdentifier` функции автоматически устанавливается как `postInstallLogicFunctionUniversalIdentifier` в манифесте приложения во время сборки — вам не нужно ссылаться на него в `defineApplication()`.
+* Параметры функции `universalIdentifier`, `shouldRunOnVersionUpgrade` и `shouldRunSynchronously` автоматически добавляются в манифест приложения в поле `postInstallLogicFunction` во время сборки — вам не нужно указывать их в `defineApplication()`.
 * Тайм-аут по умолчанию установлен на 300 секунд (5 минут), чтобы позволить выполнять более длительные задачи настройки, такие как инициализация данных.
+* **Не выполняется в режиме разработки**: когда приложение зарегистрировано локально (через `yarn twenty dev`), сервер полностью пропускает процесс установки и синхронизирует файлы напрямую через наблюдатель CLI — поэтому post-install никогда не запускается в режиме разработки, независимо от `shouldRunSynchronously`. Используйте `yarn twenty exec --postInstall`, чтобы запустить это вручную для запущенного рабочего пространства.
+
+</Accordion>
+<Accordion title="definePreInstallLogicFunction" description="Определяет предустановочную логическую функцию (по одной на приложение)">
+
+Функция pre-install — это логическая функция, которая автоматически выполняется во время установки, **до применения миграции метаданных рабочего пространства**. Она использует ту же структуру полезной нагрузки, что и post-install (`InstallPayload`), но находится раньше в процессе установки, чтобы подготовить состояние, от которого зависит предстоящая миграция, — типичные сценарии включают резервное копирование данных, проверку совместимости с новой схемой или архивирование записей, которые будут реструктурированы или удалены.
+
+```ts src/logic-functions/pre-install.ts
+import { definePreInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+
+const handler = async (payload: InstallPayload): Promise<void> => {
+  console.log('Pre install logic function executed successfully!', payload.previousVersion);
+};
+
+export default definePreInstallLogicFunction({
+  universalIdentifier: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  name: 'pre-install',
+  description: 'Runs before installation to prepare the application.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: true,
+  handler,
+});
+```
+
+Вы также можете вручную выполнить предустановочную функцию в любое время с помощью CLI:
+
+```bash filename="Terminal"
+yarn twenty exec --preInstall
+```
+
+Основные моменты:
+* Функции pre-install используют `definePreInstallLogicFunction()` — та же специализированная конфигурация, что и у post-install, только привязанная к другому этапу жизненного цикла.
+* И обработчики pre-, и post-install получают один и тот же тип `InstallPayload`: `{ previousVersion?: string; newVersion: string }`. Импортируйте его один раз и используйте повторно в обоих хуках.
+* **Когда запускается хук**: выполняется непосредственно перед миграцией метаданных рабочего пространства (`synchronizeFromManifest`). Перед выполнением сервер запускает чисто добавочную «урезанную синхронизацию», которая регистрирует в метаданных рабочего пространства pre-install функцию **новой** версии — ничего больше не затрагивается — а затем выполняет её. Поскольку эта синхронизация только добавляет, объекты, поля и данные предыдущей версии остаются нетронутыми к моменту запуска вашего обработчика: вы можете безопасно читать и сохранять состояние до миграции.
+* **Модель выполнения**: pre-install выполняется **синхронно** и **блокирует установку**. Если обработчик генерирует исключение, установка прерывается до применения каких-либо изменений схемы — рабочее пространство остаётся на предыдущей версии в согласованном состоянии. Это сделано намеренно: pre-install — ваш последний шанс отказать в рискованном обновлении.
+* Как и в случае с post-install, для каждого приложения допускается только одна предустановочная функция. Она автоматически добавляется в манифест приложения в поле `preInstallLogicFunction` во время сборки.
+* **Не выполняется в режиме разработки**: как и post-install, процесс установки полностью пропускается для локально зарегистрированных приложений, поэтому pre-install никогда не запускается при `yarn twenty dev`. Используйте `yarn twenty exec --preInstall`, чтобы запустить это вручную.
+
+</Accordion>
+<Accordion title="Pre-install и post-install: когда что использовать" description="Выбор подходящего хука установки">
+
+Оба хука являются частью одного и того же процесса установки и получают один и тот же `InstallPayload`. Разница в том, **когда** они запускаются относительно миграции метаданных рабочего пространства, и это определяет, к каким данным можно безопасно обращаться.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ install flow                                                │
+│                                                             │
+│   upload package → [pre-install] → metadata migration →     │
+│   generate SDK → [post-install]                             │
+│                                                             │
+│                  old schema visible    new schema visible   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+Pre-install всегда **синхронный** (он блокирует установку и может её прервать). Post-install **по умолчанию асинхронный** — ставится в очередь воркера с автоматическими повторами — но может перейти к синхронному выполнению с `shouldRunSynchronously: true`. См. аккордеон `definePostInstallLogicFunction` выше о том, когда использовать каждый режим.
+
+**Используйте `post-install` для всего, что требует наличия новой схемы.** Это распространённый случай:
+
+* Наполнение данными по умолчанию (создание начальных записей, стандартных представлений, демонстрационного контента) для недавно добавленных объектов и полей.
+* Регистрация вебхуков в сторонних сервисах теперь, когда у приложения уже есть учётные данные.
+* Вызов вашего собственного API для завершения настройки, зависящей от синхронизированных метаданных.
+* Идемпотентная логика «убедиться, что это существует», которая должна приводить состояние в соответствие при каждом обновлении — совместите с `shouldRunOnVersionUpgrade: true`.
+
+Пример — создать запись `PostCard` по умолчанию после установки:
+
+```ts src/logic-functions/post-install.ts
+import { definePostInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+import { createClient } from './generated/client';
+
+const handler = async ({ previousVersion }: InstallPayload): Promise<void> => {
+  if (previousVersion) return; // fresh installs only
+
+  const client = createClient();
+  await client.postCard.create({
+    data: { title: 'Welcome to Postcard', content: 'Your first card!' },
+  });
+};
+
+export default definePostInstallLogicFunction({
+  universalIdentifier: 'f7a2b9c1-3d4e-5678-abcd-ef9876543210',
+  name: 'post-install',
+  description: 'Seeds a welcome post card after install.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: false,
+  handler,
+});
+```
+
+**Используйте `pre-install`, когда миграция в противном случае уничтожит или повредит существующие данные.** Поскольку pre-install работает с *предыдущей* схемой и при сбое откатывает обновление, это правильное место для всего рискованного:
+
+* **Резервное копирование данных, которые будут удалены или реструктурированы** — например, вы удаляете поле в v2 и вам нужно скопировать его значения в другое поле или экспортировать их в хранилище до запуска миграции.
+* **Архивирование записей, которые новое ограничение сделает недопустимыми** — например, поле становится `NOT NULL`, и вам сначала нужно удалить или исправить строки со значениями null.
+* **Проверка совместимости и отказ от обновления, если текущие данные нельзя корректно мигрировать** — выбросьте исключение из обработчика, и установка прервётся без внесения изменений. Это безопаснее, чем обнаружить несовместимость в середине миграции.
+* **Переименование или изменение ключей данных** перед изменением схемы, которое привело бы к потере связи.
+
+Пример — архивировать записи перед разрушительной миграцией:
+
+```ts src/logic-functions/pre-install.ts
+import { definePreInstallLogicFunction, type InstallPayload } from 'twenty-sdk/define';
+import { createClient } from './generated/client';
+
+const handler = async ({ previousVersion, newVersion }: InstallPayload): Promise<void> => {
+  // Only the 1.x → 2.x upgrade drops the legacy `notes` field.
+  if (!previousVersion?.startsWith('1.') || !newVersion.startsWith('2.')) {
+    return;
+  }
+
+  const client = createClient();
+  const legacyRecords = await client.postCard.findMany({
+    where: { notes: { isNotNull: true } },
+  });
+
+  if (legacyRecords.length === 0) return;
+
+  // Copy legacy `notes` into the new `description` field before the migration
+  // drops the `notes` column. If this fails, the upgrade is aborted and the
+  // workspace stays on v1 with all data intact.
+  await Promise.all(
+    legacyRecords.map((record) =>
+      client.postCard.update({
+        where: { id: record.id },
+        data: { description: record.notes },
+      }),
+    ),
+  );
+};
+
+export default definePreInstallLogicFunction({
+  universalIdentifier: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+  name: 'pre-install',
+  description: 'Backs up legacy notes into description before the v2 migration.',
+  timeoutSeconds: 300,
+  shouldRunOnVersionUpgrade: true,
+  handler,
+});
+```
+
+**Общее правило:**
+
+| Вы хотите…                                                                                                        | Использовать                                                                         |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Наполнить данными по умолчанию, настроить рабочее пространство, зарегистрировать внешние ресурсы                  | `post-install`                                                                       |
+| Выполнить длительное наполнение или сторонние вызовы, которые не должны блокировать ответ установки               | `post-install` (по умолчанию — `shouldRunSynchronously: false`, с повторами воркера) |
+| Выполнить быструю настройку, на которую вызывающая сторона будет полагаться сразу после возврата вызова установки | `post-install` с `shouldRunSynchronously: true`                                      |
+| Прочитать или сохранить данные, которые предстоящая миграция может потерять                                       | `pre-install`                                                                        |
+| Отклонить обновление, которое повредит существующие данные                                                        | `pre-install` (бросьте исключение из обработчика)                                    |
+| Выполнять согласование при каждом обновлении                                                                      | `post-install` с `shouldRunOnVersionUpgrade: true`                                   |
+| Сделать одноразовую настройку только при первой установке                                                         | `post-install` с `shouldRunOnVersionUpgrade: false` (по умолчанию)                   |
+
+<Note>
+Если сомневаетесь, выбирайте по умолчанию **post-install**. Обращайтесь к pre-install только тогда, когда сама миграция разрушительна и вам нужно перехватить предыдущее состояние, прежде чем оно исчезнет.
+</Note>
 
 </Accordion>
 <Accordion title="defineFrontComponent" description="Определение фронт-компонентов для настраиваемого интерфейса">
 
 Фронтенд-компоненты — это компоненты React, которые отображаются непосредственно внутри интерфейса Twenty. Они выполняются в изолированном Web Worker с использованием Remote DOM — ваш код изолирован (sandboxed), но рендерится нативно на странице, а не в iframe.
 
+#### Где можно использовать фронт-компоненты
+
+Фронт-компоненты могут отображаться в двух местах внутри Twenty:
+
+* **Боковая панель** — фронт-компоненты с интерфейсом открываются в правой боковой панели. Это поведение по умолчанию, когда фронт-компонент запускается из меню команд.
+* **Виджеты (дашборды и страницы записей)** — фронт-компоненты можно встраивать как виджеты в макеты страниц. При настройке дашборда или макета страницы записи пользователи могут добавить виджет фронт-компонента.
+
 #### Простой пример
 
 Самый быстрый способ увидеть фронтенд-компонент в действии — зарегистрировать его как **команду**. Добавление поля `command` с `isPinned: true` делает его кнопкой быстрого действия в правом верхнем углу страницы — макет страницы не требуется:
 
 ```tsx src/front-components/hello-world.tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 
 const HelloWorld = () => {
   return (
@@ -748,7 +881,7 @@ export default defineFrontComponent({
 });
 ```
 
-После синхронизации с помощью `yarn twenty dev` быстрое действие появится в правом верхнем углу страницы:
+После синхронизации с помощью `yarn twenty dev` (или однократного запуска `yarn twenty dev --once`) быстрое действие появится в правом верхнем углу страницы:
 
 <div style={{textAlign: 'center'}}>
   <img src="/images/docs/developers/extends/apps/quick-action.png" alt="Кнопка быстрого действия в правом верхнем углу" />
@@ -773,12 +906,17 @@ export default defineFrontComponent({
 
 Помимо команд, вы можете встроить фронт-компонент непосредственно на страницу записи, добавив его как виджет в **макет страницы**. См. раздел [definePageLayout](#definepagelayout) для подробностей.
 
-#### Headless-компоненты (`isHeadless: true`)
+#### Headless и non-headless
 
-Headless-компоненты не отображают видимый UI, но при этом выполняют логику React. Это полезно для **компонентов-эффектов** — компонентов, которые выполняют побочные эффекты при монтировании, например синхронизацию данных, запуск таймера, прослушивание событий или показ уведомления.
+Фронт-компоненты поддерживают два режима отображения, управляемых опцией `isHeadless`:
+
+**Non-headless (по умолчанию)** — компонент отображает видимый интерфейс. При запуске из меню команд он открывается в боковой панели. Это поведение по умолчанию, когда `isHeadless` имеет значение `false` или опущен.
+
+**Headless (`isHeadless: true`)** — компонент монтируется невидимо в фоновом режиме. Он не открывает боковую панель. Компоненты headless предназначены для действий, которые выполняют логику и затем размонтируются — например, запуск асинхронной задачи, переход на страницу или показ модального окна подтверждения. Они естественно сочетаются с компонентами SDK Command, описанными ниже.
 
 ```tsx src/front-components/sync-tracker.tsx
-import { defineFrontComponent, useRecordId, enqueueSnackbar } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { useRecordId, enqueueSnackbar } from 'twenty-sdk/front-component';
 import { useEffect } from 'react';
 
 const SyncTracker = () => {
@@ -802,17 +940,100 @@ export default defineFrontComponent({
 
 Поскольку компонент возвращает `null`, Twenty пропускает рендеринг контейнера для него — в макете не появляется пустое место. Компонент по-прежнему имеет доступ ко всем хукам и API взаимодействия с хостом.
 
+#### Компоненты SDK Command
+
+Пакет `twenty-sdk` предоставляет четыре вспомогательных компонента Command, предназначенных для headless фронт-компонентов. Каждый компонент выполняет действие при монтировании, обрабатывает ошибки, показывая уведомление snackbar, и автоматически размонтирует фронт-компонент по завершении.
+
+Импортируйте их из `twenty-sdk/command`:
+
+* **`Command`** — запускает асинхронный колбэк через проп `execute`.
+* **`CommandLink`** — переходит по пути внутри приложения. Пропы: `to`, `params`, `queryParams`, `options`.
+* **`CommandModal`** — открывает модальное окно подтверждения. Если пользователь подтвердит, выполняет колбэк `execute`. Пропы: `title`, `subtitle`, `execute`, `confirmButtonText`, `confirmButtonAccent`.
+* **`CommandOpenSidePanelPage`** — открывает конкретную страницу боковой панели. Пропы: `page`, `pageTitle`, `pageIcon`.
+
+Полный пример headless фронт-компонента, использующего `Command` для запуска действия из меню команд:
+
+```tsx src/front-components/run-action.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { Command } from 'twenty-sdk/command';
+import { CoreApiClient } from 'twenty-sdk/clients';
+
+const RunAction = () => {
+  const execute = async () => {
+    const client = new CoreApiClient();
+
+    await client.mutation({
+      createTask: {
+        __args: { data: { title: 'Created by my app' } },
+        id: true,
+      },
+    });
+  };
+
+  return <Command execute={execute} />;
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'e5f6a7b8-c9d0-1234-efab-345678901234',
+  name: 'run-action',
+  description: 'Creates a task from the command menu',
+  component: RunAction,
+  isHeadless: true,
+  command: {
+    universalIdentifier: 'f6a7b8c9-d0e1-2345-fabc-456789012345',
+    label: 'Run my action',
+    icon: 'IconPlayerPlay',
+  },
+});
+```
+
+А также пример с использованием `CommandModal` для запроса подтверждения перед выполнением:
+
+```tsx src/front-components/delete-draft.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { CommandModal } from 'twenty-sdk/command';
+
+const DeleteDraft = () => {
+  const execute = async () => {
+    // perform the deletion
+  };
+
+  return (
+    <CommandModal
+      title="Delete draft?"
+      subtitle="This action cannot be undone."
+      execute={execute}
+      confirmButtonText="Delete"
+      confirmButtonAccent="danger"
+    />
+  );
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'a7b8c9d0-e1f2-3456-abcd-567890123456',
+  name: 'delete-draft',
+  description: 'Deletes a draft with confirmation',
+  component: DeleteDraft,
+  isHeadless: true,
+  command: {
+    universalIdentifier: 'b8c9d0e1-f2a3-4567-bcde-678901234567',
+    label: 'Delete draft',
+    icon: 'IconTrash',
+  },
+});
+```
+
 #### Доступ к контексту времени выполнения
 
 Внутри вашего компонента используйте хуки SDK для доступа к текущему пользователю, записи и экземпляру компонента:
 
 ```tsx src/front-components/record-info.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
 import {
-  defineFrontComponent,
   useUserId,
   useRecordId,
   useFrontComponentId,
-} from 'twenty-sdk';
+} from 'twenty-sdk/front-component';
 
 const RecordInfo = () => {
   const userId = useUserId();
@@ -858,6 +1079,51 @@ export default defineFrontComponent({
 | `unmountFrontComponent()`                       | Размонтировать компонент         |
 | `updateProgress(progress)`                      | Обновить индикатор прогресса     |
 
+Пример, который использует API хоста для показа snackbar и закрытия боковой панели после завершения действия:
+
+```tsx src/front-components/archive-record.tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
+import { useRecordId } from 'twenty-sdk/front-component';
+import { enqueueSnackbar, closeSidePanel } from 'twenty-sdk/front-component';
+import { CoreApiClient } from 'twenty-sdk/clients';
+
+const ArchiveRecord = () => {
+  const recordId = useRecordId();
+
+  const handleArchive = async () => {
+    const client = new CoreApiClient();
+
+    await client.mutation({
+      updateTask: {
+        __args: { id: recordId, data: { status: 'ARCHIVED' } },
+        id: true,
+      },
+    });
+
+    await enqueueSnackbar({
+      message: 'Record archived',
+      variant: 'success',
+    });
+
+    await closeSidePanel();
+  };
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <p>Archive this record?</p>
+      <button onClick={handleArchive}>Archive</button>
+    </div>
+  );
+};
+
+export default defineFrontComponent({
+  universalIdentifier: 'c9d0e1f2-a3b4-5678-cdef-789012345678',
+  name: 'archive-record',
+  description: 'Archives the current record',
+  component: ArchiveRecord,
+});
+```
+
 #### Параметры команды
 
 Добавление поля `command` в `defineFrontComponent` регистрирует компонент в меню команд (Cmd+K). Если `isPinned` имеет значение `true`, команда также отображается как кнопка быстрого действия в правом верхнем углу страницы.
@@ -878,14 +1144,14 @@ export default defineFrontComponent({
 Поле `conditionalAvailabilityExpression` позволяет управлять видимостью команды в зависимости от текущего контекста страницы. Импортируйте типизированные переменные и операторы из `twenty-sdk`, чтобы составлять выражения:
 
 ```tsx
+import { defineFrontComponent } from 'twenty-sdk/define';
 import {
-  defineFrontComponent,
   pageType,
   numberOfSelectedRecords,
   objectPermissions,
   everyEquals,
   isDefined,
-} from 'twenty-sdk';
+} from 'twenty-sdk/front-component';
 
 export default defineFrontComponent({
   universalIdentifier: '...',
@@ -945,7 +1211,7 @@ export default defineFrontComponent({
 Компоненты фронтенда могут получать доступ к файлам из каталога приложения `public/` с помощью `getPublicAssetUrl`:
 
 ```tsx
-import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk';
+import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk/define';
 
 const Logo = () => <img src={getPublicAssetUrl('logo.png')} alt="Logo" />;
 
@@ -970,7 +1236,7 @@ export default defineFrontComponent({
 * **Любая библиотека CSS-in-JS**, совместимая с React
 
 ```tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 import { Button, Tag, Status } from 'twenty-sdk/ui';
 
 const StyledWidget = () => {
@@ -997,7 +1263,7 @@ export default defineFrontComponent({
 Навыки определяют многократно используемые инструкции и возможности, которые агенты ИИ могут использовать в вашем рабочем пространстве. Используйте `defineSkill()` для определения навыков со встроенной валидацией:
 
 ```ts src/skills/example-skill.ts
-import { defineSkill } from 'twenty-sdk';
+import { defineSkill } from 'twenty-sdk/define';
 
 export default defineSkill({
   universalIdentifier: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -1026,7 +1292,7 @@ export default defineSkill({
 Агенты — это ИИ-помощники, работающие в вашем рабочем пространстве. Используйте `defineAgent()` для создания агентов с пользовательским системным промптом:
 
 ```ts src/agents/example-agent.ts
-import { defineAgent } from 'twenty-sdk';
+import { defineAgent } from 'twenty-sdk/define';
 
 export default defineAgent({
   universalIdentifier: 'b3c4d5e6-f7a8-9012-bcde-f34567890123',
@@ -1052,7 +1318,7 @@ export default defineAgent({
 Представления — это сохранённые конфигурации отображения записей объекта: какие поля видны, их порядок, а также применённые фильтры и группы. Используйте `defineView()` для поставки преднастроенных представлений вместе с вашим приложением:
 
 ```ts src/views/example-view.ts
-import { defineView, ViewKey } from 'twenty-sdk';
+import { defineView, ViewKey } from 'twenty-sdk/define';
 import { EXAMPLE_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 import { NAME_FIELD_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 
@@ -1088,7 +1354,7 @@ export default defineView({
 Пункты навигационного меню добавляют пользовательские элементы в боковую панель рабочего пространства. Используйте `defineNavigationMenuItem()` для ссылок на представления, внешние URL или объекты:
 
 ```ts src/navigation-menu-items/example-navigation-menu-item.ts
-import { defineNavigationMenuItem, NavigationMenuItemType } from 'twenty-sdk';
+import { defineNavigationMenuItem, NavigationMenuItemType } from 'twenty-sdk/define';
 import { EXAMPLE_VIEW_UNIVERSAL_IDENTIFIER } from '../views/example-view';
 
 export default defineNavigationMenuItem({
@@ -1114,7 +1380,7 @@ export default defineNavigationMenuItem({
 Макеты страниц позволяют настраивать вид страницы с деталями записи: какие вкладки отображаются, какие виджеты внутри каждой вкладки и как они расположены. Используйте `definePageLayout()` для поставки пользовательских макетов вместе с вашим приложением:
 
 ```ts src/page-layouts/example-record-page-layout.ts
-import { definePageLayout, PageLayoutTabLayoutMode } from 'twenty-sdk';
+import { definePageLayout, PageLayoutTabLayoutMode } from 'twenty-sdk/define';
 import { EXAMPLE_OBJECT_UNIVERSAL_IDENTIFIER } from '../objects/example-object';
 import { HELLO_WORLD_FRONT_COMPONENT_UNIVERSAL_IDENTIFIER } from '../front-components/hello-world';
 
@@ -1177,7 +1443,7 @@ export default definePageLayout({
 **В логической функции:**
 
 ```ts src/logic-functions/send-invoice.ts
-import { defineLogicFunction, getPublicAssetUrl } from 'twenty-sdk';
+import { defineLogicFunction, getPublicAssetUrl } from 'twenty-sdk/define';
 
 const handler = async (): Promise<any> => {
   const logoUrl = getPublicAssetUrl('logo.png');
@@ -1202,7 +1468,7 @@ export default defineLogicFunction({
 **В компоненте фронтенда:**
 
 ```tsx src/front-components/company-card.tsx
-import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk';
+import { defineFrontComponent, getPublicAssetUrl } from 'twenty-sdk/define';
 
 export default defineFrontComponent(() => {
   const logoUrl = getPublicAssetUrl('logo.png');
@@ -1226,7 +1492,7 @@ yarn add axios
 Затем импортируйте его в своём коде:
 
 ```ts src/logic-functions/fetch-data.ts
-import { defineLogicFunction } from 'twenty-sdk';
+import { defineLogicFunction } from 'twenty-sdk/define';
 import axios from 'axios';
 
 const handler = async (): Promise<any> => {
@@ -1247,7 +1513,7 @@ export default defineLogicFunction({
 То же самое работает для компонентов фронтенда:
 
 ```tsx src/front-components/chart.tsx
-import { defineFrontComponent } from 'twenty-sdk';
+import { defineFrontComponent } from 'twenty-sdk/define';
 import { format } from 'date-fns';
 
 const DateWidget = () => {
@@ -1263,7 +1529,7 @@ export default defineFrontComponent({
 
 ### Как работает бандлинг
 
-Этап сборки (`yarn twenty dev` или `yarn twenty build`) использует esbuild для создания одного самодостаточного файла на каждую логическую функцию и на каждый компонент фронтенда. Все импортированные пакеты встроены в бандл.
+Этап сборки использует esbuild для создания одного самодостаточного файла на каждую логическую функцию и на каждый компонент фронтенда. Все импортированные пакеты встроены в бандл.
 
 **Логические функции** выполняются в среде Node.js. Встроенные модули Node (`fs`, `path`, `crypto`, `http` и т. д.) доступны и не требуют установки.
 
@@ -1291,42 +1557,42 @@ yarn twenty add frontComponent
 
 ### Доступные типы сущностей
 
-| Тип сущности         | Команда                              | Сгенерированный файл                  |
-| -------------------- | ------------------------------------ | ------------------------------------- |
-| Объект               | `yarn twenty add object`             | `src/objects/<name>.ts`               |
-| Поле                 | `yarn twenty add field`              | `src/fields/<name>.ts`                |
-| Логическая функция   | `yarn twenty add logicFunction`      | `src/logic-functions/<name>.ts`       |
-| Компонент фронтенда  | `yarn twenty add frontComponent`     | `src/front-components/<name>.tsx`     |
-| Роль                 | `yarn twenty add role`               | `src/roles/<name>.ts`                 |
-| Навык                | `yarn twenty add skill`              | `src/skills/<name>.ts`                |
-| Агент                | `yarn twenty add agent`              | `src/agents/<name>.ts`                |
-| Представление        | `yarn twenty add view`               | `src/views/<name>.ts`                 |
-| Navigation menu item | `yarn twenty add navigationMenuItem` | `src/navigation-menu-items/<name>.ts` |
-| Page layout          | `yarn twenty add pageLayout`         | `src/page-layouts/<name>.ts`          |
+| Тип сущности         | Команда                              | Сгенерированный файл                                    |
+| -------------------- | ------------------------------------ | ------------------------------------------------------- |
+| Объект               | `yarn twenty add object`             | `src/objects/\<name>.ts`               |
+| Поле                 | `yarn twenty add field`              | `src/fields/\<name>.ts`                |
+| Логическая функция   | `yarn twenty add logicFunction`      | `src/logic-functions/\<name>.ts`       |
+| Компонент фронтенда  | `yarn twenty add frontComponent`     | `src/front-components/\<name>.tsx`     |
+| Роль                 | `yarn twenty add role`               | `src/roles/\<name>.ts`                 |
+| Навык                | `yarn twenty add skill`              | `src/skills/\<name>.ts`                |
+| Агент                | `yarn twenty add agent`              | `src/agents/\<name>.ts`                |
+| Представление        | `yarn twenty add view`               | `src/views/\<name>.ts`                 |
+| Пункт меню навигации | `yarn twenty add navigationMenuItem` | `src/navigation-menu-items/\<name>.ts` |
+| Макет страницы       | `yarn twenty add pageLayout`         | `src/page-layouts/\<name>.ts`          |
 
-### What the scaffolder generates
+### Что генерирует скэффолдер
 
-Each entity type has its own template. For example, `yarn twenty add object` asks for:
+У каждого типа сущности есть свой шаблон. Например, `yarn twenty add object` запрашивает:
 
-1. **Name (singular)** — e.g., `invoice`
-2. **Name (plural)** — e.g., `invoices`
-3. **Label (singular)** — auto-populated from the name (e.g., `Invoice`)
-4. **Label (plural)** — auto-populated (e.g., `Invoices`)
-5. **Create a view and navigation item?** — if you answer yes, the scaffolder also generates a matching view and sidebar link for the new object.
+1. **Имя (единственное число)** — например, `invoice`
+2. **Имя (множественное число)** — например, `invoices`
+3. **Метка (единственное число)** — заполняется автоматически из имени (например, `Invoice`)
+4. **Метка (множественное число)** — заполняется автоматически (например, `Invoices`)
+5. **Создать представление и пункт навигации?** — если вы ответите «да», скэффолдер также сгенерирует соответствующее представление и ссылку в боковой панели для нового объекта.
 
-Other entity types have simpler prompts — most only ask for a name.
+У других типов сущностей подсказки проще — в большинстве случаев запрашивается только имя.
 
-The `field` entity type is more detailed: it asks for the field name, label, type (from a list of all available field types like `TEXT`, `NUMBER`, `SELECT`, `RELATION`, etc.), and the target object's `universalIdentifier`.
+Тип сущности `field` более детализирован: он запрашивает имя поля, метку, тип (из списка всех доступных типов полей, таких как `TEXT`, `NUMBER`, `SELECT`, `RELATION` и т. д.), а также `universalIdentifier` целевого объекта.
 
-### Custom output path
+### Пользовательский путь вывода
 
-Use the `--path` flag to place the generated file in a custom location:
+Используйте флаг `--path`, чтобы поместить сгенерированный файл в пользовательское расположение:
 
 ```bash filename="Terminal"
 yarn twenty add logicFunction --path src/custom-folder
 ```
 
-## Typed API clients (twenty-client-sdk)
+## Типизированные клиенты API (twenty-client-sdk)
 
 Пакет `twenty-client-sdk` предоставляет два типизированных клиента GraphQL для взаимодействия с API Twenty из ваших логических функций и фронт-компонентов.
 
@@ -1336,9 +1602,9 @@ yarn twenty add logicFunction --path src/custom-folder
 | `MetadataApiClient` | `twenty-client-sdk/metadata` | `/metadata` — конфигурация рабочего пространства, загрузка файлов | Нет, поставляется в готовом виде |
 
 <AccordionGroup>
-<Accordion title="CoreApiClient" description="Query and mutate workspace data (records, objects)">
+<Accordion title="CoreApiClient" description="Запрос и изменение данных рабочего пространства (записи, объекты)">
 
-`CoreApiClient` — основной клиент для запросов и изменений данных рабочего пространства. It is **generated from your workspace schema** during `yarn twenty dev` or `yarn twenty build`, so it is fully typed to match your objects and fields.
+`CoreApiClient` — основной клиент для запросов и изменений данных рабочего пространства. Он **генерируется из схемы вашего рабочего пространства** во время `yarn twenty dev` или `yarn twenty build`, поэтому полностью типизирован в соответствии с вашими объектами и полями.
 
 ```ts
 import { CoreApiClient } from 'twenty-client-sdk/core';
@@ -1378,12 +1644,12 @@ const { createCompany } = await client.mutation({
 Клиент использует синтаксис selection-set: передайте `true`, чтобы включить поле, используйте `__args` для аргументов и вкладывайте объекты для отношений. Вы получаете полное автодополнение и проверку типов на основе схемы вашего рабочего пространства.
 
 <Note>
-**CoreApiClient is generated at dev/build time.** If you use it without running `yarn twenty dev` or `yarn twenty build` first, it throws an error. The generation happens automatically — the CLI introspects your workspace's GraphQL schema and generates a typed client using `@genql/cli`.
+**CoreApiClient генерируется на этапе dev/build.** Если вы используете его, не запустив сначала `yarn twenty dev` или `yarn twenty build`, он выбросит ошибку. Генерация происходит автоматически — CLI анализирует GraphQL-схему вашего рабочего пространства и создает типизированный клиент с помощью `@genql/cli`.
 </Note>
 
 #### Использование CoreSchema для аннотаций типов
 
-`CoreSchema` provides TypeScript types matching your workspace objects — useful for typing component state or function parameters:
+`CoreSchema` предоставляет типы TypeScript, соответствующие объектам вашего рабочего пространства — это полезно для типизации состояния компонентов или параметров функций:
 
 ```ts
 import { CoreApiClient, CoreSchema } from 'twenty-client-sdk/core';
@@ -1405,7 +1671,7 @@ setCompany(result.company);
 ```
 
 </Accordion>
-<Accordion title="MetadataApiClient" description="Workspace config, applications, and file uploads">
+<Accordion title="MetadataApiClient" description="Конфигурация рабочего пространства, приложения и загрузка файлов">
 
 `MetadataApiClient` поставляется в готовом виде вместе с SDK (генерация не требуется). Он выполняет запросы к эндпоинту `/metadata` для получения конфигурации рабочего пространства, приложений и загрузки файлов.
 
@@ -1461,7 +1727,7 @@ console.log(uploadedFile);
 | ---------------------------------- | -------- | ------------------------------------------------------------------ |
 | `fileBuffer`                       | `Buffer` | Необработанное содержимое файла                                    |
 | `filename`                         | `строка` | Имя файла (используется для хранения и отображения)                |
-| `contentType`                      | `string` | MIME type (defaults to `application/octet-stream` if omitted)      |
+| `contentType`                      | `string` | Тип MIME (по умолчанию `application/octet-stream`, если не указан) |
 | `fieldMetadataUniversalIdentifier` | `string` | Значение `universalIdentifier` для поля типа файла в вашем объекте |
 
 Основные моменты:
@@ -1475,24 +1741,24 @@ console.log(uploadedFile);
   Когда ваш код выполняется на Twenty (логические функции или фронт-компоненты), платформа предоставляет учётные данные в виде переменных окружения:
 
   * `TWENTY_API_URL` — базовый URL API Twenty
-  * `TWENTY_APP_ACCESS_TOKEN` — Short-lived key scoped to your application's default function role
+  * `TWENTY_APP_ACCESS_TOKEN` — краткоживущий ключ, ограниченный ролью функции по умолчанию вашего приложения
 
   Вам не нужно передавать их клиентам — они автоматически читаются из `process.env`. Права ключа API определяются ролью, указанной в `defaultRoleUniversalIdentifier` в вашем `application-config.ts`.
 </Note>
 
-## Testing your app
+## Тестирование вашего приложения
 
-The SDK provides programmatic APIs that let you build, deploy, install, and uninstall your app from test code. Combined with [Vitest](https://vitest.dev/) and the typed API clients, you can write integration tests that verify your app works end-to-end against a real Twenty server.
+SDK предоставляет программные API, которые позволяют собирать, разворачивать, устанавливать и удалять ваше приложение из тестового кода. В сочетании с [Vitest](https://vitest.dev/) и типизированными клиентами API вы можете писать интеграционные тесты, которые проверяют, что ваше приложение работает сквозным образом на реальном сервере Twenty.
 
 ### Настройка
 
-The scaffolded app already includes Vitest. If you set it up manually, install the dependencies:
+Приложение, созданное скэффолдером, уже включает Vitest. Если вы настраиваете его вручную, установите зависимости:
 
 ```bash filename="Terminal"
 yarn add -D vitest vite-tsconfig-paths
 ```
 
-Create a `vitest.config.ts` at the root of your app:
+Создайте `vitest.config.ts` в корне вашего приложения:
 
 ```ts vitest.config.ts
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -1518,7 +1784,7 @@ export default defineConfig({
 });
 ```
 
-Create a setup file that verifies the server is reachable before tests run:
+Создайте файл инициализации, который проверяет доступность сервера перед запуском тестов:
 
 ```ts src/__tests__/setup-test.ts
 import * as fs from 'fs';
@@ -1558,22 +1824,22 @@ beforeAll(async () => {
 });
 ```
 
-### Programmatic SDK APIs
+### Программные API SDK
 
-The `twenty-sdk/cli` subpath exports functions you can call directly from test code:
+Подпуть `twenty-sdk/cli` экспортирует функции, которые можно вызывать напрямую из тестового кода:
 
-| Функция        | Описание                                    |
-| -------------- | ------------------------------------------- |
-| `appBuild`     | Build the app and optionally pack a tarball |
-| `appDeploy`    | Upload a tarball to the server              |
-| `appInstall`   | Install the app on the active workspace     |
-| `appUninstall` | Uninstall the app from the active workspace |
+| Функция        | Описание                                                   |
+| -------------- | ---------------------------------------------------------- |
+| `appBuild`     | Собрать приложение и при необходимости упаковать tar-архив |
+| `appDeploy`    | Загрузить tar-архив на сервер                              |
+| `appInstall`   | Установить приложение в активное рабочее пространство      |
+| `appUninstall` | Удалить приложение из активного рабочего пространства      |
 
-Each function returns a result object with `success: boolean` and either `data` or `error`.
+Каждая функция возвращает объект результата с `success: boolean` и либо `data`, либо `error`.
 
-### Writing an integration test
+### Написание интеграционного теста
 
-Here is a full example that builds, deploys, and installs the app, then verifies it appears in the workspace:
+Полный пример, который собирает, разворачивает и устанавливает приложение, а затем проверяет, что оно появляется в рабочем пространстве:
 
 ```ts src/__tests__/app-install.integration-test.ts
 import { APPLICATION_UNIVERSAL_IDENTIFIER } from 'src/application-config';
@@ -1636,37 +1902,37 @@ describe('App installation', () => {
 });
 ```
 
-### Running tests
+### Запуск тестов
 
-Make sure your local Twenty server is running, then:
+Убедитесь, что ваш локальный сервер Twenty запущен, затем:
 
 ```bash filename="Terminal"
 yarn test
 ```
 
-Or in watch mode during development:
+Или в режиме наблюдения во время разработки:
 
 ```bash filename="Terminal"
 yarn test:watch
 ```
 
-### Type checking
+### Проверка типов
 
-You can also run type checking on your app without running tests:
+Вы также можете запустить проверку типов для своего приложения без запуска тестов:
 
 ```bash filename="Terminal"
 yarn twenty typecheck
 ```
 
-This runs `tsc --noEmit` and reports any type errors.
+Это запускает `tsc --noEmit` и сообщает о любых ошибках типов.
 
 ## Справочник по CLI
 
-Beyond `dev`, `build`, `add`, and `typecheck`, the CLI provides commands for executing functions, viewing logs, and managing app installations.
+Помимо `dev`, `build`, `add` и `typecheck`, CLI предоставляет команды для выполнения функций, просмотра логов и управления установками приложений.
 
-### Executing functions (`yarn twenty exec`)
+### Выполнение функций (`yarn twenty exec`)
 
-Run a logic function manually without triggering it via HTTP, cron, or database event:
+Запустите функцию логики вручную, не вызывая ее через HTTP, cron или событие базы данных:
 
 ```bash filename="Terminal"
 # Execute by function name
@@ -1678,14 +1944,13 @@ yarn twenty exec -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
 # Pass a JSON payload
 yarn twenty exec -n create-new-post-card -p '{"name": "Hello"}'
 
-# Execute pre-install or post-install functions
-yarn twenty exec --preInstall
+# Execute the post-install function
 yarn twenty exec --postInstall
 ```
 
-### Viewing function logs (`yarn twenty logs`)
+### Просмотр логов функций (`yarn twenty logs`)
 
-Stream execution logs for your app's logic functions:
+Потоковая передача журналов выполнения функций логики вашего приложения:
 
 ```bash filename="Terminal"
 # Stream all function logs
@@ -1699,12 +1964,12 @@ yarn twenty logs -u e56d363b-0bdc-4d8a-a393-6f0d1c75bdcf
 ```
 
 <Note>
-This is different from `yarn twenty server logs`, which shows the Docker container logs. `yarn twenty logs` shows your app's function execution logs from the Twenty server.
+Это отличается от `yarn twenty server logs`, который показывает логи контейнера Docker. `yarn twenty logs` показывает журналы выполнения функций вашего приложения с сервера Twenty.
 </Note>
 
-### Uninstalling an app (`yarn twenty uninstall`)
+### Удаление приложения (`yarn twenty uninstall`)
 
-Remove your app from the active workspace:
+Удалите свое приложение из активного рабочего пространства:
 
 ```bash filename="Terminal"
 yarn twenty uninstall
@@ -1712,3 +1977,86 @@ yarn twenty uninstall
 # Skip the confirmation prompt
 yarn twenty uninstall --yes
 ```
+
+## Управление удалёнными серверами
+
+**Remote** — это сервер Twenty, к которому подключается ваше приложение. Во время настройки скэффолдер автоматически создаст его для вас. Вы можете в любой момент добавлять новые удалённые серверы или переключаться между ними.
+
+```bash filename="Terminal"
+# Add a new remote (opens a browser for OAuth login)
+yarn twenty remote add
+
+# Connect to a local Twenty server (auto-detects port 2020 or 3000)
+yarn twenty remote add --local
+
+# Add a remote non-interactively (useful for CI)
+yarn twenty remote add --api-url https://your-twenty-server.com --api-key $TWENTY_API_KEY --as my-remote
+
+# List all configured remotes
+yarn twenty remote list
+
+# Switch the active remote
+yarn twenty remote switch <name>
+```
+
+Ваши учётные данные хранятся в `~/.twenty/config.json`.
+
+## CI с GitHub Actions
+
+Скэффолдер генерирует готовый к использованию workflow GitHub Actions в `.github/workflows/ci.yml`. Он автоматически запускает ваши интеграционные тесты при каждом пуше в `main` и в pull request'ах.
+
+Рабочий процесс:
+
+1. Извлекает ваш код
+2. Поднимает временный сервер Twenty с помощью экшена `twentyhq/twenty/.github/actions/spawn-twenty-docker-image`
+3. Устанавливает зависимости с помощью `yarn install --immutable`
+4. Запускает `yarn test` с `TWENTY_API_URL` и `TWENTY_API_KEY`, переданными из выходных данных экшена
+
+```yaml .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+env:
+  TWENTY_VERSION: latest
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Spawn Twenty instance
+        id: twenty
+        uses: twentyhq/twenty/.github/actions/spawn-twenty-docker-image@main
+        with:
+          twenty-version: ${{ env.TWENTY_VERSION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run integration tests
+        run: yarn test
+        env:
+          TWENTY_API_URL: ${{ steps.twenty.outputs.server-url }}
+          TWENTY_API_KEY: ${{ steps.twenty.outputs.access-token }}
+```
+
+Вам не нужно настраивать секреты — экшен `spawn-twenty-docker-image` запускает эфемерный сервер Twenty прямо в раннере и выводит данные для подключения. Секрет `GITHUB_TOKEN` предоставляется GitHub автоматически.
+
+Чтобы закрепить конкретную версию Twenty вместо `latest`, измените переменную окружения `TWENTY_VERSION` в начале workflow.
