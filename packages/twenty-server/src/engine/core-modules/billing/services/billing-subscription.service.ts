@@ -182,7 +182,9 @@ export class BillingSubscriptionService {
     workspaceId: string,
   ): Promise<BillingEntitlementDTO[]> {
     const isBillingEnabled = this.twentyConfigService.get('IS_BILLING_ENABLED');
-    const hasValidEnterprisePlan = this.enterprisePlanService.isValid();
+    const hasValidEnterprisePlan =
+      this.enterprisePlanService.isValid() ||
+      this.enterprisePlanService.hasValidEnterpriseKey();
 
     const entitlements = isBillingEnabled
       ? await this.billingEntitlementRepository.find({
