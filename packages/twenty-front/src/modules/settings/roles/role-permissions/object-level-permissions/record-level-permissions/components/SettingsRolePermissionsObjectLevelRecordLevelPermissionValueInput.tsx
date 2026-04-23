@@ -2,17 +2,12 @@
 
 import { styled } from '@linaria/react';
 import { t } from '@lingui/core/macro';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import { FieldMetadataType, CoreObjectNameSingular } from 'twenty-shared/types';
-import {
-  arrayOfUuidOrVariableSchema,
-  isDefined,
-  jsonRelationFilterValueSchema,
-} from 'twenty-shared/utils';
+import { isDefined } from 'twenty-shared/utils';
 import { AppTooltip, IconEraser, TooltipDelay } from 'twenty-ui/display';
 import { type JsonValue } from 'type-fest';
 
-import { allowRequestsToTwentyIconsState } from '@/client-config/states/allowRequestsToTwentyIcons';
 import { useFieldMetadataItemById } from '@/object-metadata/hooks/useFieldMetadataItemById';
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { formatFieldMetadataItemAsFieldDefinition } from '@/object-metadata/utils/formatFieldMetadataItemAsFieldDefinition';
@@ -26,14 +21,9 @@ import { isCompositeFieldType } from '@/object-record/object-filter-dropdown/uti
 import { FormFieldInput } from '@/object-record/record-field/ui/components/FormFieldInput';
 import { FormMultiSelectFieldInput } from '@/object-record/record-field/ui/form-types/components/FormMultiSelectFieldInput';
 import { currentRecordFiltersComponentState } from '@/object-record/record-filter/states/currentRecordFiltersComponentState';
-import { MultipleSelectDropdown } from '@/object-record/select/components/MultipleSelectDropdown';
-import { useRecordsForSelect } from '@/object-record/select/hooks/useRecordsForSelect';
-import { type SelectableItem } from '@/object-record/select/types/SelectableItem';
 import { type CompositeFieldType } from '@/settings/data-model/types/CompositeFieldType';
 import { createRecordLevelPermissionVariablePicker } from '@/settings/roles/role-permissions/object-level-permissions/record-level-permissions/components/SettingsRolePermissionsObjectLevelRecordLevelPermissionVariablePicker';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
-import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
-import { type RelationFilterValue } from '@/views/view-filter-value/types/RelationFilterValue';
 import { ThemeContext, themeCssVariables } from 'twenty-ui/theme-constants';
 
 const StyledContainer = styled.div`
@@ -99,132 +89,8 @@ const StyledFormFieldInputWrapper = styled.div`
   overflow: visible;
 `;
 
-const StyledRelationMultiSelectContainer = styled.div`
-  border: 1px solid ${themeCssVariables.border.color.medium};
-  border-radius: ${themeCssVariables.border.radius.sm};
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-  overflow: visible;
-`;
-
-const StyledRelationSearchInput = styled.input`
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid ${themeCssVariables.border.color.light};
-  border-radius: 0;
-  color: ${themeCssVariables.font.color.primary};
-  font-family: inherit;
-  font-size: ${themeCssVariables.font.size.sm};
-  font-weight: inherit;
-  margin: 0;
-  min-height: 19px;
-  outline: none;
-  overflow: hidden;
-  padding: ${themeCssVariables.spacing[2]};
-  width: 100%;
-
-  &::placeholder {
-    color: ${themeCssVariables.font.color.light};
-  }
-`;
-
 type SettingsRolePermissionsObjectLevelRecordLevelPermissionValueInputProps = {
   recordFilterId: string;
-};
-
-type RLSRelationMultiSelectProps = {
-  recordFilterId: string;
-  objectNameSingular: string;
-  currentValue: string;
-  onApply: (value: string, displayValue: string) => void;
-};
-
-const RLSRelationMultiSelect = ({
-  objectNameSingular,
-  currentValue,
-  onApply,
-}: RLSRelationMultiSelectProps) => {
-  const [searchInput, setSearchInput] = useState('');
-
-  const allowRequestsToTwentyIcons = useAtomStateValue(
-    allowRequestsToTwentyIconsState,
-  );
-
-  const { isCurrentWorkspaceMemberSelected, selectedRecordIds } =
-    jsonRelationFilterValueSchema
-      .catch({
-        isCurrentWorkspaceMemberSelected: false,
-        selectedRecordIds: arrayOfUuidOrVariableSchema.parse(currentValue),
-      })
-      .parse(currentValue);
-
-  const { loading, filteredSelectedRecords, recordsToSelect, selectedRecords } =
-    useRecordsForSelect({
-      searchFilterText: searchInput,
-      selectedIds: selectedRecordIds,
-      objectNameSingular,
-      limit: 10,
-      allowRequestsToTwentyIcons,
-    });
-
-  const handleChange = (item: SelectableItem, isNewSelectedValue: boolean) => {
-    if (loading) return;
-
-    const newSelectedRecordIds = isNewSelectedValue
-      ? [...selectedRecordIds, item.id]
-      : selectedRecordIds.filter((id) => id !== item.id);
-
-    const allRecords = [
-      ...recordsToSelect,
-      ...selectedRecords,
-      ...filteredSelectedRecords,
-    ].filter(
-      (record, index, self) =>
-        self.findIndex((r) => r.id === record.id) === index,
-    );
-
-    const selectedNames = allRecords
-      .filter((record) => newSelectedRecordIds.includes(record.id))
-      .map((record) => record.name);
-
-    const displayValue =
-      selectedNames.length > 3
-        ? `${selectedNames.length} members`
-        : selectedNames.join(', ');
-
-    const newFilterValue =
-      newSelectedRecordIds.length > 0 || isCurrentWorkspaceMemberSelected
-        ? JSON.stringify({
-            isCurrentWorkspaceMemberSelected: isCurrentWorkspaceMemberSelected ?? false,
-            selectedRecordIds: newSelectedRecordIds,
-          } satisfies RelationFilterValue)
-        : '';
-
-    onApply(newFilterValue, displayValue);
-  };
-
-  return (
-    <StyledRelationMultiSelectContainer>
-      <StyledRelationSearchInput
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-        placeholder={t`Search...`}
-        autoComplete="off"
-      />
-      <MultipleSelectDropdown
-        selectableListId={`rls-relation-select-${objectNameSingular}`}
-        focusId={`rls-relation-select-${objectNameSingular}`}
-        itemsToSelect={recordsToSelect}
-        filteredSelectedItems={filteredSelectedRecords}
-        selectedItems={selectedRecords}
-        onChange={handleChange}
-        searchFilter={searchInput}
-        loadingItems={loading}
-      />
-    </StyledRelationMultiSelectContainer>
-  );
 };
 
 export const SettingsRolePermissionsObjectLevelRecordLevelPermissionValueInput =
@@ -421,28 +287,6 @@ export const SettingsRolePermissionsObjectLevelRecordLevelPermissionValueInput =
     const isFilterableByMultiSelectValue =
       fieldDefinition.type === FieldMetadataType.MULTI_SELECT ||
       fieldDefinition.type === FieldMetadataType.SELECT;
-
-    const isRelationToWorkspaceMember =
-      fieldDefinition.type === FieldMetadataType.RELATION &&
-      fieldMetadataItem?.relation?.targetObjectMetadata.nameSingular ===
-        CoreObjectNameSingular.WorkspaceMember;
-
-    if (isRelationToWorkspaceMember) {
-      return (
-        <StyledContainer>
-          <StyledFormFieldInputWrapper>
-            <RLSRelationMultiSelect
-              recordFilterId={recordFilterId}
-              objectNameSingular={CoreObjectNameSingular.WorkspaceMember}
-              currentValue={recordFilter.value ?? ''}
-              onApply={(value, displayValue) =>
-                applyObjectFilterDropdownFilterValue(value, displayValue)
-              }
-            />
-          </StyledFormFieldInputWrapper>
-        </StyledContainer>
-      );
-    }
 
     if (isFilterableByMultiSelectValue) {
       let formattedValue = recordFilter.value;
