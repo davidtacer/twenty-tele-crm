@@ -189,6 +189,19 @@ export class DataArgProcessorService {
         return validateNumberFieldOrThrow(value, key);
       }
       case FieldMetadataType.TEXT: {
+        // Backward-compat: bodyV2 may be stored as TEXT in the DB but the
+        // frontend sends a rich-text object { blocknote, markdown }.
+        if (
+          value !== null &&
+          typeof value === 'object' &&
+          !Array.isArray(value) &&
+          ('blocknote' in value || 'markdown' in value)
+        ) {
+          const validatedValue = validateRichTextFieldOrThrow(value, key);
+
+          return await transformRichTextValue(validatedValue);
+        }
+
         const validatedValue = validateTextFieldOrThrow(value, key);
 
         return transformTextField(validatedValue);
